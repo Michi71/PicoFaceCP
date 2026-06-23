@@ -16,6 +16,7 @@
 #include "encoder.h"
 #include "push_button.h"
 #include "pico_userinterface.h"
+#include "pico_cp_ui.h"
 //#include "image.h"
 
 #include "FreeRTOS.h"
@@ -24,6 +25,7 @@
 
 #include "arduino_compat.h"
 #include "mdaEPiano.h"
+#include "cp_audio.h"
 
 #define USE_DIN_MIDI 0
 #define DEBUG_MIDI 0
@@ -48,6 +50,9 @@ audio_buffer_pool_t *ap;
 u8g2_t u8g2; 
 
 mdaEPiano ep(96);
+
+// Reface CP effect chain (post-processes the engine output)
+RefaceCpChain cp_fx;
 
 #define logoWidth 32
 #define logoHeight 32
@@ -155,19 +160,28 @@ MIDIInputUSB usbmidi;
         
         while (1)
         {
-            // Select Program
+            // Home screen: select Program
             res = pico_UserInterfaceProgramSelect(&u8g2, &enc, &bt, &ep);
-            
-            while (res > -1) {
-                vTaskDelay(pdMS_TO_TICKS(500));
-                res = pico_UserInterfaceParamSelect(&u8g2, &enc, &bt, &ep);
-                if (res > -1)
-                {
-                    vTaskDelay(pdMS_TO_TICKS(500));
-                    pico_UserInterfaceParamInput(&u8g2, &enc, &bt, &ep, res-1);
+
+            if (res > -1) {
+                // Top-level menu: voice params or Reface CP effects
+                uint8_t menu = pico_UserInterfaceSelectionList(&u8g2, &enc, &bt, "MENU", 0,
+                                                               "Voice Params\nCP Effects\n<< BACK");
+                if (menu == 0) {
+                    while (res > -1) {
+                        vTaskDelay(pdMS_TO_TICKS(500));
+                        res = pico_UserInterfaceParamSelect(&u8g2, &enc, &bt, &ep);
+                        if (res > -1)
+                        {
+                            vTaskDelay(pdMS_TO_TICKS(500));
+                            pico_UserInterfaceParamInput(&u8g2, &enc, &bt, &ep, res-1);
+                        }
+                    }
+                } else if (menu == 1) {
+                    pico_UserInterfaceCpEffects(&u8g2, &enc, &bt, &cp_fx);
                 }
             }
-            
+
             vTaskDelay(pdMS_TO_TICKS(500));
         }
     }
@@ -183,7 +197,19 @@ MIDIInputUSB usbmidi;
         
         // Initialize the audio subsystem
         ap = init_audio();
-        ep.setVolume(64); 
+        ep.setVolume(64);
+
+        // Reface CP effect chain: init + tasteful default preset
+        cp_fx.init((float)SAMPLING_RATE);
+        cp_fx.setVoiceType(ep.getCurrentInstrument());
+        cp_fx.setVolume(0.9f);
+        cp_fx.setDrive(0.15f);
+        cp_fx.setChoPhaMode(RefaceCpChain::CP_CHORUS);
+        cp_fx.setChoPhaDepth(0.4f);
+        cp_fx.setChoPhaSpeed(0.3f);
+        cp_fx.setReverbDepth(0.25f);
+        cp_fx.setTremWahMode(RefaceCpChain::TW_OFF);
+        cp_fx.setDelayMode(RefaceCpChain::DLY_OFF);
 
         // Initialize the OLED screen (SH1106)
         u8g2_Setup_sh1106_i2c_128x64_noname_f(&u8g2, 
@@ -252,6 +278,9 @@ MIDIInputUSB usbmidi;
 
         // Process the synth
         ep.process(&l[0], &r[0]);
+
+        // Apply the Reface CP effect chain (int16 <-> float, in place)
+        cp_process_block_i16(cp_fx, &l[0], &r[0], buffer->max_sample_count);
 
         // We are filling the buffer with 32-bit samples (2 channels)
         for (uint i = 0; i < buffer->max_sample_count; i++)

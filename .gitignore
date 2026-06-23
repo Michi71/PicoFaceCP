@@ -67,3 +67,7 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# host-test binaries (built by test/build*.sh)
+test/cp_test
+test/mdaepiano_test

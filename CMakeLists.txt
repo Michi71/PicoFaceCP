@@ -33,7 +33,7 @@ SET(BUILD_NAME "${PROJECT_NAME}")
 
 pico_sdk_init()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR} ".")
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/effects ${CMAKE_CURRENT_BINARY_DIR} ".")
 
 add_subdirectory(lib/audio)
 add_subdirectory(lib/encoder)
@@ -75,6 +75,7 @@ add_executable(${PROJECT_NAME}
     src/pico_input_value.cpp
     src/pico_program_select.cpp
     src/pico_param_select.cpp
+    src/pico_cp_ui.cpp
     lib/FreeRTOS-Kernel/portable/MemMang/heap_3.c)
 
 pico_define_boot_stage2(slower_boot2 ${PICO_DEFAULT_BOOT_STAGE2_FILE})
