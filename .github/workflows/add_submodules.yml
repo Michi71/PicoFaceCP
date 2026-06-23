@@ -1,31 +1,42 @@
 name: Add Submodules
 
 on:
-  # Allows you to run this workflow manually from the Actions tab or through HTTP API
   workflow_dispatch:
 
 jobs:
   add_submodule:
     runs-on: ubuntu-latest
 
+    # Gewährt der Action die nötigen Schreibrechte im Repository
+    permissions:
+      contents: write
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v6
-      
-    - name: Add circle Submodule
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Add Submodules
       run: |
         git config --global user.email "m.geerken@address-solutions.de"
         git config --global user.name "Michi71"
+        
+        # Submodule direkt in den Zielordner hinzufügen
         git submodule add -b master https://github.com/raspberrypi/pico-sdk.git lib/pico-sdk
         git submodule add -b master https://github.com/raspberrypi/pico-extras.git lib/pico-extras
         git submodule add -b master https://github.com/raspberrypi/FreeRTOS-Kernel.git lib/FreeRTOS-Kernel
+        
         git submodule init
         git submodule update
-      
-    - name: Commit changes
+
+    - name: Commit and Push changes
       run: |
-        git config --global user.email "m.geerken@address-solutions.de"
-        git config --global user.name "Michi71"
-        git add .gitmodules circle
-        git commit -m 'Added <repository> as a submodule'
+        # Fügt die .gitmodules und die neuen Submodule-Ordner hinzu
+        git add .gitmodules lib/
+        
+        # Verhindert Fehler, falls keine Änderungen vorhanden sind
+        git diff-index --quiet HEAD || git commit -m 'Add pico-sdk, pico-extras, and FreeRTOS-Kernel submodules'
+        
         git push
+
