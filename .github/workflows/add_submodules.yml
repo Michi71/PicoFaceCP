@@ -25,7 +25,7 @@ jobs:
         # Submodule direkt in den Zielordner hinzufügen
         git submodule add -b master https://github.com/raspberrypi/pico-sdk.git lib/pico-sdk
         git submodule add -b master https://github.com/raspberrypi/pico-extras.git lib/pico-extras
-        git submodule add -b master https://github.com/raspberrypi/FreeRTOS-Kernel.git lib/FreeRTOS-Kernel
+        git submodule add -b main https://github.com/raspberrypi/FreeRTOS-Kernel.git lib/FreeRTOS-Kernel
         
         git submodule init
         git submodule update
