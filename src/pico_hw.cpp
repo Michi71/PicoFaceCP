@@ -75,9 +75,7 @@ void pico_init()
     set_sys_clock_khz(402 * 1000, true);
 #endif
 
-    // Initialize TinyUSB
-    board_init();
-    tusb_init();
+    // Initialize stdio
     stdio_init_all();
 
     // LED on GPIO25

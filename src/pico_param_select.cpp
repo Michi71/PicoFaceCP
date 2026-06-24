@@ -1,6 +1,7 @@
 #include "pico_userinterface.h"
 
 #include "mdaEPiano.h"
+#include "ipc.h"
 
 
 #ifdef __cplusplus
@@ -99,7 +100,7 @@ uint8_t pico_UserInterfaceParamInput(u8g2_t *u8g2, Encoder *enc, PushButton *bt,
 		do
 		{
 			if (old_value != local_value) {
-				ep->setParameter(paramIndex, local_value);
+				ipc_send_voice_param((uint8_t)paramIndex, local_value);
 				old_value = local_value;
 			}
 			ep->getParameterDisplay(paramIndex, displ);
@@ -118,7 +119,7 @@ uint8_t pico_UserInterfaceParamInput(u8g2_t *u8g2, Encoder *enc, PushButton *bt,
 		
 		for(;;)
 		{
-			delta = enc->delta();
+			ui_poll_usb(); delta = enc->delta();
 			if (bt->ReadButton() == PushButton::PRESSED)
 			{
 				return 1;

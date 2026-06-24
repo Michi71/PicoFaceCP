@@ -268,7 +268,7 @@ uint8_t pico_UserInterfaceSelectionList(u8g2_t *u8g2, Encoder *enc, PushButton *
       for(;;)
       {
 		  
-	    delta = enc->delta();
+	    ui_poll_usb(); delta = enc->delta();
 		
 		if(delta != 0) {
 			start = to_ms_since_boot(get_absolute_time());

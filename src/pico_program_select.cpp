@@ -1,6 +1,7 @@
 #include "pico_userinterface.h"
 
 #include "mdaEPiano.h"
+#include "ipc.h"
 
 /*
   Draw a string at x,y
@@ -104,7 +105,7 @@ uint8_t pico_UserInterfaceProgramSelect(u8g2_t *u8g2, Encoder *enc, PushButton *
   y = u8g2_GetAscent(u8g2);
   x = 0;
   
- // ep->setProgram(local_value);
+ // ipc_send_program(local_value);
   /* event loop */
   for(;;)
   {
@@ -131,7 +132,7 @@ uint8_t pico_UserInterfaceProgramSelect(u8g2_t *u8g2, Encoder *enc, PushButton *
         
     for(;;)
     {
-	  delta = enc->delta();
+	  ui_poll_usb(); delta = enc->delta();
       if (bt->ReadButton() == PushButton::PRESSED)
       {
 		return local_value;
@@ -142,7 +143,7 @@ uint8_t pico_UserInterfaceProgramSelect(u8g2_t *u8g2, Encoder *enc, PushButton *
 			local_value = 0;
 		else
 			local_value++;
-			ep->setProgram(local_value);
+			ipc_send_program(local_value);
 		break;
       }
       else if (delta < 0)
@@ -151,7 +152,7 @@ uint8_t pico_UserInterfaceProgramSelect(u8g2_t *u8g2, Encoder *enc, PushButton *
 		  local_value = ep->getProgramCount() - 1;
 		else
 		  local_value--;
-		  ep->setProgram(local_value);
+		  ipc_send_program(local_value);
 		break;
       }        
     }
@@ -159,6 +160,30 @@ uint8_t pico_UserInterfaceProgramSelect(u8g2_t *u8g2, Encoder *enc, PushButton *
   
   /* never reached */
   //return r;  
+}
+
+uint8_t pico_UserInterfaceInstrumentSelect(u8g2_t *u8g2, Encoder *enc, PushButton *bt, mdaEPiano *ep) {
+    char buf[128];
+    u8g2_SetFont(u8g2, u8g2_font_8x13B_tf);
+
+    int32_t count = ep->getInstrumentCount();
+
+    buf[0] = 0;
+    for (int32_t i = 0; i < count; i++) {
+        strcat(buf, ep->getInstrumentName(i));
+        strcat(buf, "\n");
+    }
+    strcat(buf, "<< BACK");
+
+    uint8_t start = (uint8_t)(ep->getCurrentInstrument() + 1);
+    uint8_t sel = pico_UserInterfaceSelectionList(u8g2, enc, bt, "INSTRUMENT", start, buf);
+
+    if (sel >= 1 && sel <= (uint8_t)count) {
+        ipc_send_instrument((uint8_t)(sel - 1));
+        return (uint8_t)(sel - 1);
+    }
+
+    return 0xFF;
 }
 
 #ifdef __cplusplus

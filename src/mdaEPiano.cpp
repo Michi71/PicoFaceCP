@@ -652,3 +652,9 @@ void mdaEPiano::setInstrument(int32_t idx)
 int32_t mdaEPiano::getCurrentInstrument() { return currentInstr; }
 
 char* mdaEPiano::getCurrentInstrumentName() { return instrName; }
+
+int32_t mdaEPiano::getInstrumentCount() { return MDA_NINSTR; }
+const char* mdaEPiano::getInstrumentName(int32_t idx) {
+    if (idx < 0 || idx >= MDA_NINSTR) return "";
+    return mdaInstruments[idx].name;
+}

@@ -18,6 +18,10 @@ uint8_t pico_UserInterfaceInputValue(u8g2_t *u8g2, Encoder *enc, PushButton *bt,
 uint8_t pico_UserInterfaceProgramSelect(u8g2_t *u8g2, Encoder *enc, PushButton *bt, mdaEPiano *ep);
 uint8_t pico_UserInterfaceParamSelect(u8g2_t *u8g2, Encoder *enc, PushButton *bt, mdaEPiano *ep);
 uint8_t pico_UserInterfaceParamInput(u8g2_t *u8g2, Encoder *enc, PushButton *bt, mdaEPiano *ep, uint32_t paramIndex);
+uint8_t pico_UserInterfaceInstrumentSelect(u8g2_t *u8g2, Encoder *enc, PushButton *bt, mdaEPiano *ep);
+
+// Pump USB / MIDI / demo on Core 1 from inside blocking UI wait-loops.
+void ui_poll_usb(void);
 
 #ifdef __cplusplus
 }

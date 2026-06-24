@@ -14,13 +14,11 @@ set(PICO_PLATFORM "rp2350-arm-s")
 # set(PICO_BOARD "solderparty_rp2350_stamp_xl")
 set(PICO_BOARD "sparkfun_promicro_rp2350")
 
-set(FREERTOS_KERNEL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/FreeRTOS-Kernel")
 set(PICO_SDK_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/pico-sdk")
 
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
 include(pico_extras_import.cmake)
-include(FreeRTOS_Kernel_import.cmake)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -Wl,--print-memory-usage")
@@ -59,11 +57,6 @@ else()
     message("Using fixed for real type")
 endif()
 
-if (NOT FREERTOS_KERNEL_PATH AND NOT DEFINED ENV{FREERTOS_KERNEL_PATH})
-    message("Skipping FreeRTOS examples as FREERTOS_KERNEL_PATH not defined")
-    return()
-endif()
-
 add_executable(${PROJECT_NAME}
     src/usb_descriptors.c
     src/mdaEPiano.cpp
@@ -76,7 +69,7 @@ add_executable(${PROJECT_NAME}
     src/pico_program_select.cpp
     src/pico_param_select.cpp
     src/pico_cp_ui.cpp
-    lib/FreeRTOS-Kernel/portable/MemMang/heap_3.c)
+)
 
 pico_define_boot_stage2(slower_boot2 ${PICO_DEFAULT_BOOT_STAGE2_FILE})
 if (PICO_PLATFORM STREQUAL "rp2040")
@@ -123,7 +116,6 @@ target_link_libraries(${PROJECT_NAME}
         Audio
         RotaryEncoder
         u8g2
-        FreeRTOS-Kernel
         )
 
 

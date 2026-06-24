@@ -7,6 +7,7 @@
 #include "pico_cp_ui.h"
 #include "pico_userinterface.h"   // pico_UserInterfaceSelectionList
 #include "pico/stdlib.h"
+#include "ipc.h"                   // inter-core FIFO: route FX edits to Core 0
 #include <cstdio>
 #include <cstring>
 
@@ -20,7 +21,7 @@ static float cpEditFloat(u8g2_t* u8g2, Encoder* enc, PushButton* bt,
     uint32_t last = to_ms_since_boot(get_absolute_time());
 
     while (true) {
-        int32_t d = enc->delta();
+        ui_poll_usb(); int32_t d = enc->delta();
         if (d > 0) {
             cur += step;
             last = to_ms_since_boot(get_absolute_time());
@@ -59,7 +60,7 @@ static int cpEditMode(u8g2_t* u8g2, Encoder* enc, PushButton* bt,
     uint32_t last = to_ms_since_boot(get_absolute_time());
 
     while (true) {
-        int32_t d = enc->delta();
+        ui_poll_usb(); int32_t d = enc->delta();
         if (d > 0) {
             cur = (cur + 1) % 3;
             last = to_ms_since_boot(get_absolute_time());
@@ -115,42 +116,66 @@ int pico_UserInterfaceCpEffects(u8g2_t* u8g2, Encoder* enc, PushButton* bt, Refa
 
         switch (sel)
         {
-            case 0:
-                fx->setDrive(cpEditFloat(u8g2, enc, bt, "Drive", fx->getDrive()));
+            case 0: {
+                float val = cpEditFloat(u8g2, enc, bt, "Drive", fx->getDrive());
+                ipc_send_fx_param(FX_DRIVE, val);
                 break;
-            case 1:
-                fx->setTremWahMode(cpEditMode(u8g2, enc, bt, "T/W Mode", fx->getTremWahMode(), "Off", "Tremolo", "Wah"));
+            }
+            case 1: {
+                int val = cpEditMode(u8g2, enc, bt, "T/W Mode", fx->getTremWahMode(), "Off", "Tremolo", "Wah");
+                ipc_send_fx_mode(FXM_TW_MODE, (uint8_t)val);
                 break;
-            case 2:
-                fx->setTremWahDepth(cpEditFloat(u8g2, enc, bt, "T/W Depth", fx->getTremWahDepth()));
+            }
+            case 2: {
+                float val = cpEditFloat(u8g2, enc, bt, "T/W Depth", fx->getTremWahDepth());
+                ipc_send_fx_param(FX_TW_DEPTH, val);
                 break;
-            case 3:
-                fx->setTremWahRate(cpEditFloat(u8g2, enc, bt, "T/W Rate", fx->getTremWahRate()));
+            }
+            case 3: {
+                float val = cpEditFloat(u8g2, enc, bt, "T/W Rate", fx->getTremWahRate());
+                ipc_send_fx_param(FX_TW_RATE, val);
                 break;
-            case 4:
-                fx->setChoPhaMode(cpEditMode(u8g2, enc, bt, "C/P Mode", fx->getChoPhaMode(), "Off", "Chorus", "Phaser"));
+            }
+            case 4: {
+                int val = cpEditMode(u8g2, enc, bt, "C/P Mode", fx->getChoPhaMode(), "Off", "Chorus", "Phaser");
+                ipc_send_fx_mode(FXM_CP_MODE, (uint8_t)val);
                 break;
-            case 5:
-                fx->setChoPhaDepth(cpEditFloat(u8g2, enc, bt, "C/P Depth", fx->getChoPhaDepth()));
+            }
+            case 5: {
+                float val = cpEditFloat(u8g2, enc, bt, "C/P Depth", fx->getChoPhaDepth());
+                ipc_send_fx_param(FX_CP_DEPTH, val);
                 break;
-            case 6:
-                fx->setChoPhaSpeed(cpEditFloat(u8g2, enc, bt, "C/P Speed", fx->getChoPhaSpeed()));
+            }
+            case 6: {
+                float val = cpEditFloat(u8g2, enc, bt, "C/P Speed", fx->getChoPhaSpeed());
+                ipc_send_fx_param(FX_CP_SPEED, val);
                 break;
-            case 7:
-                fx->setDelayMode(cpEditMode(u8g2, enc, bt, "Delay Mode", fx->getDelayMode(), "Off", "Digital", "Analog"));
+            }
+            case 7: {
+                int val = cpEditMode(u8g2, enc, bt, "Delay Mode", fx->getDelayMode(), "Off", "Digital", "Analog");
+                ipc_send_fx_mode(FXM_DLY_MODE, (uint8_t)val);
                 break;
-            case 8:
-                fx->setDelayDepth(cpEditFloat(u8g2, enc, bt, "Delay Depth", fx->getDelayDepth()));
+            }
+            case 8: {
+                float val = cpEditFloat(u8g2, enc, bt, "Delay Depth", fx->getDelayDepth());
+                ipc_send_fx_param(FX_DLY_DEPTH, val);
                 break;
-            case 9:
-                fx->setDelayTime(cpEditFloat(u8g2, enc, bt, "Delay Time", fx->getDelayTime()));
+            }
+            case 9: {
+                float val = cpEditFloat(u8g2, enc, bt, "Delay Time", fx->getDelayTime());
+                ipc_send_fx_param(FX_DLY_TIME, val);
                 break;
-            case 10:
-                fx->setReverbDepth(cpEditFloat(u8g2, enc, bt, "Reverb", fx->getReverbDepth()));
+            }
+            case 10: {
+                float val = cpEditFloat(u8g2, enc, bt, "Reverb", fx->getReverbDepth());
+                ipc_send_fx_param(FX_REVERB, val);
                 break;
-            case 11:
-                fx->setVolume(cpEditFloat(u8g2, enc, bt, "Volume", fx->getVolume()));
+            }
+            case 11: {
+                float val = cpEditFloat(u8g2, enc, bt, "Volume", fx->getVolume());
+                ipc_send_fx_param(FX_VOLUME, val);
                 break;
+            }
             default:
                 break;
         }

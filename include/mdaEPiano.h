@@ -150,6 +150,8 @@ public:
 	void setInstrument(int32_t instrument);       /* 0..MDA_NINSTR-1 (siehe mdaEPianoInstruments.h) */
 	int32_t getCurrentInstrument();
 	char*  getCurrentInstrumentName();
+	int32_t getInstrumentCount();
+	const char* getInstrumentName(int32_t idx);
 	void setBlockSize(int32_t blockSize);
 
 	/* Eigenes Instrument laden (data + Keygroup-Tabelle). data wird NUR gelesen
