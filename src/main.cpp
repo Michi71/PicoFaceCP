@@ -95,7 +95,11 @@ void note_off_callback(uint8_t note, uint8_t level, uint8_t channel) {
 }
 
 void cc_callback(uint8_t cc, uint8_t value, uint8_t channel) {
-    ipc_send_cc(cc, value);
+    if (cc == 1) {                                  // mod wheel -> FX tremolo depth
+        ipc_send_fx_param(FX_TW_DEPTH, (float)value / 127.0f);
+    } else {
+        ipc_send_cc(cc, value);
+    }
 }
 
 // ===========================================================================
@@ -247,6 +251,16 @@ void ui_poll_usb(void) {
 #endif
 }
 
+// Block (pumping USB) until the encoder button is released, so a single click
+// is not consumed by several menu screens in a row (ReadButton is level-based).
+void ui_wait_button_release(PushButton* bt) {
+    absolute_time_t cap = make_timeout_time_ms(3000);
+    while (bt->ReadButton() == PushButton::PRESSED && !time_reached(cap)) {
+        ui_poll_usb();
+        sleep_ms(1);
+    }
+}
+
 // ===========================================================================
 // Core 1 entry point: USB + DIN MIDI + encoder/button + OLED UI
 // ===========================================================================
@@ -267,7 +281,12 @@ void core1_main(void) {
       u8g2_DrawUTF8(&u8g2, 40, 25, PICO_PROGRAM_NAME);
       u8g2_DrawUTF8(&u8g2, 40, 40, PICO_PROGRAM_VERSION_STRING);
   } while (u8g2_NextPage(&u8g2));
-  sleep_ms(2000);
+  // keep USB enumeration alive during the splash screen
+  absolute_time_t splash_end = make_timeout_time_ms(2000);
+  while (!time_reached(splash_end)) {
+      tud_task();
+      sleep_ms(1);
+  }
   usbmidi.setCCCallback(cc_callback);
   usbmidi.setNoteOnCallback(note_on_callback);
   usbmidi.setNoteOffCallback(note_off_callback);
@@ -282,7 +301,6 @@ void core1_main(void) {
 // ===========================================================================
 int main(void) {
   pico_init();
-  ap = init_audio();
   ep.setVolume(64);
   cp_fx.init((float)SAMPLING_RATE);
   cp_fx.setVoiceType(ep.getCurrentInstrument());
@@ -294,7 +312,11 @@ int main(void) {
   cp_fx.setReverbDepth(0.25f);
   cp_fx.setTremWahMode(RefaceCpChain::TW_OFF);
   cp_fx.setDelayMode(RefaceCpChain::DLY_OFF);
+  // Core 1 (USB/MIDI/UI) must launch BEFORE init_audio(): the SDK uses the SIO
+  // FIFO for the core-launch handshake, and the audio DMA IRQ drains that same
+  // FIFO (i2s_callback_func) -> it must not run during the launch handshake.
   multicore_launch_core1(core1_main);
+  ap = init_audio();
   while (1) { __wfi(); }
   return 0;
 }

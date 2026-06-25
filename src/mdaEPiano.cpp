@@ -151,8 +151,7 @@ void mdaEPiano::update()  //parameter change
   if(param[3] > 0.5f) tfrq = 14000.0f; else tfrq = 5000.0f; //treble freq
   tfrq = 1.0f - (float)exp(-iFs * tfrq);
 
-  rmod = lmod = param[4] + param[4] - 1.0f; //lfo depth
-  if(param[4] < 0.5f) rmod = -rmod;
+  rmod = lmod = 0.0f; //lfo depth/autopan -> jetzt FX Trem/Wah
 
   dlfo = 6.283f * iFs * expf(6.22f * param[5] - 2.61f); //lfo rate
 
@@ -164,7 +163,7 @@ void mdaEPiano::update()  //parameter change
   fine = param[9] - 0.5f;
   random = 0.077f * param[10];
   stretch = 0.0f; //0.000434f * (param[11] - 0.5f); parameter re-used for overdrive!
-  overdrive = 1.8f * param[11];
+  overdrive = 0.0f; //drive -> jetzt FX Drive (war 1.8f * param[11])
 }
 
 
@@ -563,7 +562,7 @@ bool mdaEPiano::processMidiController(uint8_t data1, uint8_t data2)
 			modwhl = 0.0078f * (float)(data2);
 			if(modwhl > 0.05f) //over-ride pan/trem depth
 			{
-			  rmod = lmod = modwhl; //lfo depth
+			  rmod = lmod = 0.0f; //LFO deaktiviert (CC1 -> FX-Tremolo auf Core 0)
 			  if(param[4] < 0.5f) rmod = -rmod;
 			}
 			break;

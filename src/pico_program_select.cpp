@@ -135,7 +135,7 @@ uint8_t pico_UserInterfaceProgramSelect(u8g2_t *u8g2, Encoder *enc, PushButton *
 	  ui_poll_usb(); delta = enc->delta();
       if (bt->ReadButton() == PushButton::PRESSED)
       {
-		return local_value;
+		ui_wait_button_release(bt); return local_value;
       }
       else if (delta > 0)
       {

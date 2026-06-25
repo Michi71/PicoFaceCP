@@ -289,7 +289,7 @@ uint8_t pico_UserInterfaceSelectionList(u8g2_t *u8g2, Encoder *enc, PushButton *
 		}
 		
 		if (bt->ReadButton() == PushButton::PRESSED)
-			return u8sl.current_pos+1;	
+			{ ui_wait_button_release(bt); return u8sl.current_pos+1; }	
       }
   }
 }

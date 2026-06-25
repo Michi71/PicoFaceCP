@@ -11,7 +11,9 @@ extern "C"
 
 uint8_t pico_UserInterfaceParamSelect(u8g2_t *u8g2, Encoder *enc, PushButton *bt, mdaEPiano *ep)
 {
-	int32_t count = ep->getParameterCount();
+	// #4 Modulation, #5 LFO Rate, #11 Overdrive sind ausgeblendet (-> FX-Kette)
+	static const int32_t visible[] = { 0, 1, 2, 3, 6, 7, 8, 9, 10 };
+	const int32_t nVisible = sizeof(visible) / sizeof(visible[0]);
 	
 	char buf[1024];
 	char label[24];
@@ -19,8 +21,8 @@ uint8_t pico_UserInterfaceParamSelect(u8g2_t *u8g2, Encoder *enc, PushButton *bt
 	u8g2_SetFont(u8g2, u8g2_font_8x13B_tf);	
 	
 	memset(buf, 0, 1024);
-	for (int i=0; i<count; i++) {
-		ep->getParameterName(i, label);		
+	for (int32_t i=0; i<nVisible; i++) {
+		ep->getParameterName(visible[i], label);		
 		strcat(buf, label);
 		strcat(buf, "\n");
 	}
@@ -28,8 +30,8 @@ uint8_t pico_UserInterfaceParamSelect(u8g2_t *u8g2, Encoder *enc, PushButton *bt
 	
 	int res = pico_UserInterfaceSelectionList(u8g2, enc, bt, "Parameter", 0, buf);
 	
-	if (res > count) res = -1;
-	return (res);	
+	if (res >= 1 && res <= nVisible) return (uint8_t)(visible[res - 1] + 1);
+	return (uint8_t)-1;
 }
 
 
@@ -122,7 +124,7 @@ uint8_t pico_UserInterfaceParamInput(u8g2_t *u8g2, Encoder *enc, PushButton *bt,
 			ui_poll_usb(); delta = enc->delta();
 			if (bt->ReadButton() == PushButton::PRESSED)
 			{
-				return 1;
+				ui_wait_button_release(bt); return 1;
 			}
 			else if (delta > 0)
 			{

@@ -32,7 +32,7 @@ static float cpEditFloat(u8g2_t* u8g2, Encoder* enc, PushButton* bt,
         if (cur < 0.0f) cur = 0.0f;
         if (cur > 1.0f) cur = 1.0f;
 
-        if (bt->ReadButton() == PushButton::PRESSED) return cur;
+        if (bt->ReadButton() == PushButton::PRESSED) { ui_wait_button_release(bt); return cur; }
 
         if (to_ms_since_boot(get_absolute_time()) - last > 8000) return cur;
 
@@ -69,7 +69,7 @@ static int cpEditMode(u8g2_t* u8g2, Encoder* enc, PushButton* bt,
             last = to_ms_since_boot(get_absolute_time());
         }
 
-        if (bt->ReadButton() == PushButton::PRESSED) return cur;
+        if (bt->ReadButton() == PushButton::PRESSED) { ui_wait_button_release(bt); return cur; }
 
         if (to_ms_since_boot(get_absolute_time()) - last > 8000) return cur;
 
