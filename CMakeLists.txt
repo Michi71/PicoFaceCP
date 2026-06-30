@@ -67,8 +67,7 @@ add_executable(${PROJECT_NAME}
     src/pico_selection_list.cpp
     src/pico_input_value.cpp
     src/pico_program_select.cpp
-    src/pico_param_select.cpp
-    src/pico_cp_ui.cpp
+    src/pico_frontpanel.cpp
 )
 
 pico_define_boot_stage2(slower_boot2 ${PICO_DEFAULT_BOOT_STAGE2_FILE})

@@ -18,8 +18,12 @@ whole signal path on your desktop before flashing hardware.
 - **Reface CP effect chain** — four insert effects in series plus drive & volume,
   with authentic 3‑position switching per block and voice‑type‑linked tremolo.
 - **USB‑MIDI** input (note on/off, control change, program change).
-- **OLED + encoder UI** for program selection, voice parameters and the full
-  effect editor.
+- **Virtual front‑panel UI** (SH1106 + single encoder) — VOICE header, a
+  scrolling list of effect blocks (DRV / TRM / CHO / DLY / REV / VOL / MENU) in a
+  large bold font, and a context line showing the selected block's parameters;
+  edits are applied live. Effect type (Off/Tremolo/Wah …) is switched with a
+  long press, like the hardware toggle. Presets and system settings live in a
+  separate main menu.
 - **Header‑only, RP2350‑optimized DSP** — single‑precision float, no heap, the
   per‑sample hot path placed in RAM to avoid XIP‑cache jitter inside the audio IRQ.
 - **macOS host demo** (CoreAudio + PortMidi) running the exact same effect code.
@@ -91,7 +95,7 @@ effects/              Reface CP effect chain (header-only)
   effect_chain.{h,cpp}  Rhodes MK8 reference chain (source of WahWah)
 include/              engine, UI, board and config headers
 src/                  main.cpp, mdaEPiano engine, USB-MIDI, OLED/encoder UI
-  pico_cp_ui.{h,cpp}    SH1106 + encoder effect editor
+  pico_frontpanel.{h,cpp}  virtual front‑panel UI (home screen + main menu)
 test/                 macOS host demo (cp_test.cpp, build_cp.sh)
 doc/                  Reface owner's manual (PDF)
 lib/                  pico-sdk, pico-extras, FreeRTOS-Kernel (submodules), u8g2, ...
@@ -142,10 +146,30 @@ Point any DAW / MIDI tool at the `mdaepiano` virtual port to play it.
 ## Controls
 
 ### On the device (OLED + encoder)
-- **Home:** turn to choose a program, **press** to open the menu.
-- **Menu:** `Voice Params` (mda‑EPiano parameters) · `CP Effects` · `<< BACK`.
-- **CP Effects:** scroll to a parameter, press to edit (turn to change a value /
-  cycle a switch), press to confirm. Idle timeout returns to the list.
+The home screen is a virtual front panel. The VOICE header stays fixed; the
+effect blocks are a bold scroll list that follows the cursor (only the visible
+rows are drawn, with up/down arrows when more exist):
+```
+VOICE Rd I
+------------
+DRV   40            ▲
+TRM  T 25/60        
+CHO  C 40/35        ▼
+------------
+Depth 25  Rate 60   <- context line of the selected block
+```
+- **Turn** the encoder to change the highlighted value (applied live).
+- **Short press** → next parameter (cycles through all blocks, then `MENU`);
+  the list scrolls so the selected block stays visible.
+- **Long press** (≥ 0.5 s) on TRM / CHO / DLY → cycle that block's type
+  (Off → Tremolo → Wah, Off → Chorus → Phaser, Off → Digital → Analog);
+  the context line briefly shows the new mode. On the other entries a long
+  press steps back to the previous parameter.
+- On `MENU`, **short press** opens the main menu: `Presets` · `System` ·
+  `<< BACK` (`System` = about / future settings). Master volume is the VOL
+  block on the front panel.
+Drive, Reverb and Volume are single‑knob blocks; Tremolo/Wah, Chorus/Phaser
+and Delay expose Depth and Rate/Speed/Time plus a long‑press type switch.
 
 ### Host demo keyboard
 | Key | Action |

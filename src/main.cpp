@@ -8,6 +8,7 @@
 #include "midi_input_usb.h"
 #include "audio_subsystem.h"
 #include "pico_hw.h"
+#include "get_serial.h"
 
 #if __has_include("bsp/board_api.h")
 #include "bsp/board_api.h"
@@ -20,7 +21,7 @@
 #include "encoder.h"
 #include "push_button.h"
 #include "pico_userinterface.h"
-#include "pico_cp_ui.h"
+#include "pico_frontpanel.h"
 
 #include "arduino_compat.h"
 #include "mdaEPiano.h"
@@ -30,7 +31,7 @@
 #define DEBUG_MIDI 0
 
 // Set to 0 if you want to play notes via USB MIDI
-#define PLAY_RANDOM_NOTES 1
+#define PLAY_RANDOM_NOTES 0
 
 #ifdef __cplusplus
 extern "C"
@@ -218,25 +219,9 @@ static void gui_step(void) {
         u8g2_SetDrawColor(&u8g2, 1);
         cleared = true;
     }
-    int8_t res = pico_UserInterfaceProgramSelect(&u8g2, &enc, &bt, &ep);
-    if (res > -1) {
-        uint8_t menu = pico_UserInterfaceSelectionList(&u8g2, &enc, &bt, "MENU", 0, "Instrument\nVoice Params\nCP Effects\n<< BACK");
-        if (menu == 1) {
-            pico_UserInterfaceInstrumentSelect(&u8g2, &enc, &bt, &ep);
-        } else if (menu == 2) {
-            while (res > -1) {
-                sleep_ms(500);
-                res = pico_UserInterfaceParamSelect(&u8g2, &enc, &bt, &ep);
-                if (res > -1) {
-                    sleep_ms(500);
-                    pico_UserInterfaceParamInput(&u8g2, &enc, &bt, &ep, res - 1);
-                }
-            }
-        } else if (menu == 3) {
-            pico_UserInterfaceCpEffects(&u8g2, &enc, &bt, &cp_fx);
-        }
-    }
-    sleep_ms(500);
+    // The virtual front panel is the home screen; it loops forever and opens
+    // the Presets / System main menu from its MENU entry.
+    pico_UserInterfaceFrontPanel(&u8g2, &enc, &bt, &ep, &cp_fx);
 }
 
 // ===========================================================================
@@ -266,6 +251,7 @@ void ui_wait_button_release(PushButton* bt) {
 // ===========================================================================
 void core1_main(void) {
   board_init();
+  usb_serial_init();
   tusb_init();
   bt.Init();
   enc.init();
