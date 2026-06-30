@@ -20,6 +20,10 @@ uint8_t pico_UserInterfaceInstrumentSelect(u8g2_t *u8g2, Encoder *enc, PushButto
 
 // Pump USB / MIDI / demo on Core 1 from inside blocking UI wait-loops.
 void ui_poll_usb(void);
+// Octave transpose (-2..+2), applied to incoming MIDI notes on Core 1.
+// Set/read only from Core 1 (front panel + MIDI callbacks share the core).
+void ui_set_octave(int oct);
+int  ui_get_octave(void);
 // Block (pumping USB) until the encoder button is released; stops one click
 // cascading through several menu screens (ReadButton is level-triggered).
 void ui_wait_button_release(PushButton* bt);

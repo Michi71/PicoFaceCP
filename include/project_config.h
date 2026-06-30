@@ -13,10 +13,6 @@
 #define PIN_I2S_BCK   27
 #define PIN_I2S_WS    28
 
-#define  PIN_ENC_BTN  13
-#define  PIN_ENC_A    20
-#define  PIN_ENC_B    21
-
 #define  PIN_LED	  25
 
 #define PIN_OLED_SDA  2
@@ -24,5 +20,20 @@
 
 //#define PIN_POT_0     28
 #define PIN_POT_1     29
+
+// Selector encoder
+#define PIN_SEL_CLK   6
+#define PIN_SEL_DT    7
+#define PIN_SEL_SW    8
+
+// Param A encoder
+#define PIN_PA_CLK    10
+#define PIN_PA_DT     11
+#define PIN_PA_SW     14   // optional switch
+
+// Param B encoder
+#define PIN_PB_CLK    12
+#define PIN_PB_DT     13
+#define PIN_PB_SW     15   // optional switch
 
 #endif // __PROJECT_CONFIG_H__

@@ -41,11 +41,18 @@ extern "C"
 // ---------------------------------------------------------------------------
 // Globals
 //   ep / cp_fx are owned and processed exclusively by Core 0 (audio master).
-//   enc / bt / u8g2 / usbmidi are owned and serviced exclusively by Core 1.
+//   encSel/encA/encB + btSel/btA/btB / u8g2 / usbmidi are owned and serviced
+//   exclusively by Core 1.
 //   Core 1 -> Core 0 communication goes through the SIO FIFO (see ipc.h).
 // ---------------------------------------------------------------------------
-Encoder enc(pio1, 0, {PIN_ENC_A, PIN_ENC_B});
-PushButton bt(PIN_ENC_BTN, 50);
+Encoder encSel(pio1, 0, {PIN_SEL_CLK, PIN_SEL_DT});
+Encoder encA(pio1, 1, {PIN_PA_CLK, PIN_PA_DT});
+Encoder encB(pio1, 2, {PIN_PB_CLK, PIN_PB_DT});
+PushButton btSel(PIN_SEL_SW, 50);
+PushButton btA(PIN_PA_SW, 50);
+PushButton btB(PIN_PB_SW, 50);
+// Global octave transpose offset applied to incoming MIDI notes (Core 1 mutates)
+static volatile int g_octave = 0;
 
 // Create the Audio Buffer
 audio_buffer_pool_t *ap;
@@ -80,18 +87,35 @@ void core1_main(void);
 // ===========================================================================
 // MIDI callbacks (run on Core 1) -- now forward events to Core 0 via the FIFO
 // ===========================================================================
+static inline uint8_t apply_octave(uint8_t note) {
+    int n = (int)note + 12 * g_octave;
+    if (n < 0) n = 0;
+    if (n > 127) n = 127;
+    return (uint8_t)n;
+}
+
+extern "C" void ui_set_octave(int oct) {
+    if (oct < -2) oct = -2;
+    if (oct > 2) oct = 2;
+    g_octave = oct;
+}
+
+extern "C" int ui_get_octave(void) {
+    return g_octave;
+}
+
 void note_on_callback(uint8_t note, uint8_t level, uint8_t channel) {
     if (level > 0) {
-        ipc_send_note_on(note, level);
+        ipc_send_note_on(apply_octave(note), level);
         gpio_put(PIN_LED, 1);
     } else {
-        ipc_send_note_off(note);
+        ipc_send_note_off(apply_octave(note));
         gpio_put(PIN_LED, 0);
     }
 }
 
 void note_off_callback(uint8_t note, uint8_t level, uint8_t channel) {
-    ipc_send_note_off(note);
+    ipc_send_note_off(apply_octave(note));
     gpio_put(PIN_LED, 0);
 }
 
@@ -221,7 +245,7 @@ static void gui_step(void) {
     }
     // The virtual front panel is the home screen; it loops forever and opens
     // the Presets / System main menu from its MENU entry.
-    pico_UserInterfaceFrontPanel(&u8g2, &enc, &bt, &ep, &cp_fx);
+    pico_UserInterfaceFrontPanel(&u8g2, &encSel, &btSel, &encA, &btA, &encB, &btB, &ep, &cp_fx);
 }
 
 // ===========================================================================
@@ -253,8 +277,12 @@ void core1_main(void) {
   board_init();
   usb_serial_init();
   tusb_init();
-  bt.Init();
-  enc.init();
+  btSel.Init();
+  btA.Init();
+  btB.Init();
+  encSel.init();
+  encA.init();
+  encB.init();
   u8g2_Setup_sh1106_i2c_128x64_noname_f(&u8g2, U8G2_R0, u8x8_byte_pico_hw_i2c, u8x8_gpio_and_delay_pico);
   u8g2_InitDisplay(&u8g2);
   u8g2_SetPowerSave(&u8g2, 0);

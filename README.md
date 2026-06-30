@@ -5,9 +5,10 @@
 PicoFaceCP turns an RP2350 board into a compact electric-piano module: the
 [mda‑EPiano](https://sourceforge.net/projects/mda-vst/) sound engine drives six
 classic electric‑piano voices, processed through a faithful re‑creation of the
-**Reface CP** insert‑effect chain, and controlled from an SH1106 OLED and a
-single rotary encoder. A macOS host build lets you develop and audition the
-whole signal path on your desktop before flashing hardware.
+**Reface CP** insert‑effect chain, and controlled from an SH1106 OLED and
+three rotary encoders (Selector, Param A, Param B). A macOS host build lets you
+develop and audition the whole signal path on your desktop before flashing
+hardware.
 
 ---
 
@@ -18,12 +19,12 @@ whole signal path on your desktop before flashing hardware.
 - **Reface CP effect chain** — four insert effects in series plus drive & volume,
   with authentic 3‑position switching per block and voice‑type‑linked tremolo.
 - **USB‑MIDI** input (note on/off, control change, program change).
-- **Virtual front‑panel UI** (SH1106 + single encoder) — VOICE header, a
-  scrolling list of effect blocks (DRV / TRM / CHO / DLY / REV / VOL / MENU) in a
-  large bold font, and a context line showing the selected block's parameters;
-  edits are applied live. Effect type (Off/Tremolo/Wah …) is switched with a
-  long press, like the hardware toggle. Presets and system settings live in a
-  separate main menu.
+- **Paged front‑panel UI** (SH1106 + three encoders) — the Selector encoder
+  pages through seven parameter screens (VOL/OCT · VOICE · TREM/WAH · CHO/PHA ·
+  DLY · REVERB · V.PARAMS); Param A and Param B set the two on‑screen values.
+  A short Selector press cycles the effect mode on the TREM/CHO/DLY screens; a
+  long press opens the Presets / System menu. Octave (−2..+2) transpose lives on
+  the first screen.
 - **Header‑only, RP2350‑optimized DSP** — single‑precision float, no heap, the
   per‑sample hot path placed in RAM to avoid XIP‑cache jitter inside the audio IRQ.
 - **macOS host demo** (CoreAudio + PortMidi) running the exact same effect code.
@@ -70,9 +71,15 @@ Default target board: **SparkFun Pro Micro RP2350** (`PICO_BOARD` in
 | I2S LRCLK (WS) | 28 | |
 | OLED SDA | 2 | SH1106 128×64 over I2C |
 | OLED SCL | 3 | |
-| Encoder A | 20 | |
-| Encoder B | 21 | |
-| Encoder button | 13 | |
+| Selector encoder CLK | 6 | screen / menu navigation |
+| Selector encoder DT | 7 | |
+| Selector encoder SW | 8 | short press: cycle effect mode · long press: menu |
+| Param A encoder CLK | 10 | sets on‑screen value A |
+| Param A encoder DT | 11 | |
+| Param A encoder SW | 14 | optional — press resets value A to default |
+| Param B encoder CLK | 12 | sets on‑screen value B |
+| Param B encoder DT | 13 | |
+| Param B encoder SW | 15 | optional — press resets value B to default |
 | Status LED | 25 | |
 | DIN‑MIDI RX | 5 | optional |
 
@@ -145,31 +152,41 @@ Point any DAW / MIDI tool at the `mdaepiano` virtual port to play it.
 
 ## Controls
 
-### On the device (OLED + encoder)
-The home screen is a virtual front panel. The VOICE header stays fixed; the
-effect blocks are a bold scroll list that follows the cursor (only the visible
-rows are drawn, with up/down arrows when more exist):
+### On the device (OLED + 3 encoders)
+
+The front panel uses **three rotary encoders**: the **Selector** encoder moves
+between screens and navigates menus, while **Param A** and **Param B** edit the
+two values shown on the current screen. Each value screen looks like:
+
 ```
-VOICE Rd I
-------------
-DRV   40            ▲
-TRM  T 25/60        
-CHO  C 40/35        ▼
-------------
-Depth 25  Rate 60   <- context line of the selected block
+ TREM: Tremolo   3/7   <- header: title (+ current mode) and page number
+ ------------
+ Depth 25
+ Rate  60
+ Sel:Mode  A/B:edit    <- hint line
 ```
-- **Turn** the encoder to change the highlighted value (applied live).
-- **Short press** → next parameter (cycles through all blocks, then `MENU`);
-  the list scrolls so the selected block stays visible.
-- **Long press** (≥ 0.5 s) on TRM / CHO / DLY → cycle that block's type
-  (Off → Tremolo → Wah, Off → Chorus → Phaser, Off → Digital → Analog);
-  the context line briefly shows the new mode. On the other entries a long
-  press steps back to the previous parameter.
-- On `MENU`, **short press** opens the main menu: `Presets` · `System` ·
-  `<< BACK` (`System` = about / future settings). Master volume is the VOL
-  block on the front panel.
-Drive, Reverb and Volume are single‑knob blocks; Tremolo/Wah, Chorus/Phaser
-and Delay expose Depth and Rate/Speed/Time plus a long‑press type switch.
+
+- **Turn the Selector** to step through the 7 screens:
+  1. **VOL / OCT** — master Volume (A) and Octave −2..+2 (B). Octave is a
+     Core‑1 note transpose applied before synthesis.
+  2. **VOICE** — Voice Type (A) and Drive (B).
+  3. **TREM / WAH** — Depth (A) and Rate (B).
+  4. **CHO / PHA** — Depth (A) and Speed (B).
+  5. **DLY** — Depth (A) and Time (B).
+  6. **REVERB** — Reverb depth (A).
+  7. **V.PARAMS** — scroll the mda‑EPiano parameter list with A, edit the
+     selected value with B.
+- **Short press the Selector** on the TREM / CHO / DLY screens to cycle that
+  effect's mode (Off → A → B): Off→Tremolo→Wah, Off→Chorus→Phaser,
+  Off→Digital→Analog. The header shows the active mode.
+- **Long press the Selector** (≥ 0.5 s) opens the main menu: `Presets` ·
+  `System` · `<< BACK`.
+- **Param A / Param B** set the two on‑screen values live; pressing their
+  optional switch resets that value to a default.
+
+> Note: changing the Octave while keys are held can leave a held note hanging
+> (note‑off is transposed by the *current* octave) — release keys before
+> switching octaves.
 
 ### Host demo keyboard
 | Key | Action |
