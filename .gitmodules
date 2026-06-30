@@ -6,7 +6,3 @@
 	path = lib/pico-extras
 	url = https://github.com/raspberrypi/pico-extras.git
 	branch = master
-[submodule "lib/FreeRTOS-Kernel"]
-	path = lib/FreeRTOS-Kernel
-	url = https://github.com/raspberrypi/FreeRTOS-Kernel.git
-	branch = main
