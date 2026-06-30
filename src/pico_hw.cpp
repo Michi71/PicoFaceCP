@@ -82,7 +82,7 @@ void pico_init()
     gpio_init(PIN_LED);
     gpio_set_dir(PIN_LED, GPIO_OUT);
 
-    uint32_t rand_seed;
+    uint32_t rand_seed = 0;
     for (int i = 0; i < 32; i++)
     {
         bool randomBit = rosc_hw->randombit;

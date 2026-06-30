@@ -122,7 +122,7 @@ mdaEPiano::mdaEPiano(uint8_t nvoices) // mdaEPiano::mdaEPiano(audioMasterCallbac
   //laeuft auf dem Pico direkt aus dem Flash (XIP).
 
   //initialise...
-  memset(voice, 0, sizeof(voice));
+  memset(voice, 0, sizeof(VOICE) * max_polyphony);
   for(int32_t v=0; v<max_polyphony; v++) 
   {
     voice[v].env = 0.0f;
@@ -359,10 +359,12 @@ void mdaEPiano::getParameterDisplay(int32_t index, char *text)
     case  3:
     case  9: sprintf(string, "%.0f", 100.0f * param[index] - 50.0f); break;
 
-    case  4: if(param[index] > 0.5f)
-               sprintf(string, "Trem %.0f", 200.0f * param[index] - 100.0f);
-             else
-               sprintf(string, "Pan %.0f", 100.0f - 200.0f * param[index]); break;
+    case  4:
+      if(param[index] > 0.5f)
+        sprintf(string, "Trem %.0f", 200.0f * param[index] - 100.0f);
+      else
+        sprintf(string, "Pan %.0f", 100.0f - 200.0f * param[index]);
+      break;
 
     case  5: sprintf(string, "%.2f", (float)exp(6.22f * param[5] - 2.61f)); break; //LFO Hz
     case  7: sprintf(string, "%.0f", 200.0f * param[index]); break;
@@ -420,7 +422,8 @@ void mdaEPiano::process(int16_t* outputs_r, int16_t* outputs_l)
       //x = V->env * static_cast<float>(i) / 32768.0f;
       i = waves[V->pos];
       i = (i << 7) + (V->frac >> 9) * (waves[V->pos + 1] - i) + 0x40400000;
-      x = V->env * (*(float *)&i - 3.0f);  //fast int->float
+      float fi; memcpy(&fi, &i, sizeof(float));
+      x = V->env * (fi - 3.0f);  //fast int->float
 
       V->env = V->env * V->dec;  //envelope
       if (x > 0.0f)

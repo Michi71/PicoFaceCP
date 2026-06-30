@@ -87,9 +87,8 @@ extern "C"
 
 uint8_t pico_UserInterfaceProgramSelect(u8g2_t *u8g2, Encoder *enc, PushButton *bt, mdaEPiano *ep)
 {
-  u8g2_uint_t  y, yy;
-  u8g2_uint_t  x, xx;
-  
+  u8g2_uint_t  xx;
+
   uint8_t local_value = ep->getProgram();
   //uint8_t r; /* not used ??? */
   uint8_t event;
@@ -102,9 +101,6 @@ uint8_t pico_UserInterfaceProgramSelect(u8g2_t *u8g2, Encoder *enc, PushButton *
   /* force baseline position */
   u8g2_SetFontPosBaseline(u8g2);
   
-  y = u8g2_GetAscent(u8g2);
-  x = 0;
-  
  // ipc_send_program(local_value);
   /* event loop */
   for(;;)
@@ -114,7 +110,6 @@ uint8_t pico_UserInterfaceProgramSelect(u8g2_t *u8g2, Encoder *enc, PushButton *
     {
       /* render */
 	  u8g2_SetFont(u8g2, u8g2_font_8x13B_tf);		
-      yy = y;
 	  strcpy(buf, "PROGRAM");
 	  u8g2_SelDrawUTF8Line(u8g2, 0, 10, u8g2_GetDisplayWidth(u8g2)-2, buf, 0, 0);
 	  ep->getProgramName(buf);
@@ -139,22 +134,22 @@ uint8_t pico_UserInterfaceProgramSelect(u8g2_t *u8g2, Encoder *enc, PushButton *
       }
       else if (delta > 0)
       {
-		if ( local_value >= ep->getProgramCount() - 1 )
-			local_value = 0;
-		else
-			local_value++;
-			ipc_send_program(local_value);
-		break;
+        if ( local_value >= ep->getProgramCount() - 1 )
+          local_value = 0;
+        else
+          local_value++;
+        ipc_send_program(local_value);
+        break;
       }
       else if (delta < 0)
       {
-		if ( local_value <= 0 )
-		  local_value = ep->getProgramCount() - 1;
-		else
-		  local_value--;
-		  ipc_send_program(local_value);
-		break;
-      }        
+        if ( local_value <= 0 )
+          local_value = ep->getProgramCount() - 1;
+        else
+          local_value--;
+        ipc_send_program(local_value);
+        break;
+      }
     }
   }
   
