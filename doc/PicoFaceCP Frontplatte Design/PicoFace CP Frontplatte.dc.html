@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+</helmet>
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#DED9D0;padding:28px;box-sizing:border-box;font-family:'Space Mono',monospace">
+  <svg width="210mm" height="148mm" viewBox="0 0 210 148" style="display:block;background:#EFECE5;box-shadow:0 8px 44px rgba(40,36,30,0.30);border:1px solid #C7C1B5">
+    <defs>
+      <pattern id="hatch" width="1.5" height="1.5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <line x1="0" y1="0" x2="0" y2="1.5" style="stroke:#DCD6CB;stroke-width:0.4"></line>
+      </pattern>
+      <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+        <path d="M10 0 L0 0 L0 10" style="fill:none;stroke:#E2DDD3;stroke-width:0.15"></path>
+      </pattern>
+      <marker id="arr" viewBox="0 0 2 2" refX="1.6" refY="1" markerWidth="2.2" markerHeight="2.2" markerUnits="userSpaceOnUse" orient="auto">
+        <path d="M0 0 L2 1 L0 2 Z" style="fill:#3A352E"></path>
+      </marker>
+    </defs>
+
+    <rect x="0" y="0" width="210" height="148" style="fill:#EFECE5"></rect>
+    <g style="{{ gridStyle }}">
+      <rect x="0" y="0" width="210" height="148" style="fill:url(#grid)"></rect>
+    </g>
+    <rect x="4" y="4" width="202" height="140" style="fill:none;stroke:#1E1B16;stroke-width:0.4"></rect>
+    <rect x="5.2" y="5.2" width="199.6" height="137.6" style="fill:none;stroke:#1E1B16;stroke-width:0.12"></rect>
+
+    <!-- sheet header -->
+    <text x="8" y="9.2" style="font-family:'Archivo',sans-serif;font-weight:700;font-size:3.4px;letter-spacing:0.5px;fill:#1E1B16">PICOFACE CP</text>
+    <text x="8" y="12.6" style="font-family:'Space Mono',monospace;font-size:2px;letter-spacing:0.4px;fill:#7A746A">FRONT PANEL FOIL</text>
+    <text x="202" y="9.2" style="font-family:'Space Mono',monospace;font-size:2.2px;text-anchor:end;fill:#1E1B16">SCALE 1:1</text>
+    <text x="202" y="12.6" style="font-family:'Space Mono',monospace;font-size:1.9px;text-anchor:end;fill:#7A746A">UNITS: mm</text>
+
+    <!-- captions -->
+    <text x="55" y="13.6" style="font-family:'Space Mono',monospace;font-size:2.3px;letter-spacing:0.4px;text-anchor:middle;fill:#3A352E">VARIANT A · MINIMAL</text>
+    <text x="143" y="13.6" style="font-family:'Space Mono',monospace;font-size:2.3px;letter-spacing:0.4px;text-anchor:middle;fill:#3A352E">VARIANT B · BOLD</text>
+
+    <!-- ============ FOIL A (minimal / orange) ============ -->
+    <g transform="translate(30 16)">
+      <rect x="0" y="0" width="50" height="100" rx="3" ry="3" style="fill:#FBFAF7;stroke:#2A2620;stroke-width:0.25"></rect>
+      <text x="25" y="11" style="font-family:'Archivo',sans-serif;font-weight:700;font-size:4.6px;letter-spacing:0.5px;text-anchor:middle;fill:#1E1B16">PICOFACE <tspan style="fill:#E4572E">CP</tspan></text>
+      <line x1="14" y1="13.4" x2="36" y2="13.4" style="stroke:#E4572E;stroke-width:0.5"></line>
+
+      <rect x="8.5" y="17" width="33" height="22" rx="0.6" style="fill:url(#hatch)"></rect>
+      <rect x="7.5" y="16" width="35" height="24" rx="1.2" style="fill:none;stroke:#1E1B16;stroke-width:0.35"></rect>
+      <text x="25" y="27.4" style="font-family:'Space Mono',monospace;font-size:2.2px;letter-spacing:0.4px;text-anchor:middle;fill:#8A8478">DISPLAY</text>
+      <text x="25" y="30.8" style="font-family:'Space Mono',monospace;font-size:1.8px;letter-spacing:0.3px;text-anchor:middle;fill:#A8A296">33 × 22</text>
+
+      <circle cx="25" cy="50" r="3.5" style="fill:url(#hatch);stroke:#2A2620;stroke-width:0.3"></circle>
+      <line x1="25" y1="45.2" x2="25" y2="46.4" style="stroke:#E4572E;stroke-width:0.8"></line>
+      <text x="25" y="55.8" style="font-family:'Archivo',sans-serif;font-weight:600;font-size:2.7px;letter-spacing:0.6px;text-anchor:middle;fill:#1E1B16">SELECT</text>
+
+      <circle cx="25" cy="65" r="3.5" style="fill:url(#hatch);stroke:#2A2620;stroke-width:0.3"></circle>
+      <line x1="25" y1="60.2" x2="25" y2="61.4" style="stroke:#E4572E;stroke-width:0.8"></line>
+      <text x="25" y="70.8" style="font-family:'Archivo',sans-serif;font-weight:600;font-size:2.7px;letter-spacing:0.6px;text-anchor:middle;fill:#1E1B16">PARAM A</text>
+
+      <circle cx="25" cy="80" r="3.5" style="fill:url(#hatch);stroke:#2A2620;stroke-width:0.3"></circle>
+      <line x1="25" y1="75.2" x2="25" y2="76.4" style="stroke:#E4572E;stroke-width:0.8"></line>
+      <text x="25" y="85.8" style="font-family:'Archivo',sans-serif;font-weight:600;font-size:2.7px;letter-spacing:0.6px;text-anchor:middle;fill:#1E1B16">PARAM B</text>
+
+      <line x1="13" y1="88.5" x2="37" y2="88.5" style="stroke:#E4572E;stroke-width:0.4"></line>
+      <text x="25" y="92.2" style="font-family:'Archivo',sans-serif;font-weight:600;font-size:2.6px;letter-spacing:0.6px;text-anchor:middle;fill:#1E1B16">PAGE / MENU</text>
+      <text x="25" y="96.2" style="font-family:'Archivo',sans-serif;font-weight:500;font-size:2.3px;letter-spacing:0.5px;text-anchor:middle;fill:#5A554B">EDIT</text>
+    </g>
+
+    <!-- ============ FOIL B (bold / teal) ============ -->
+    <g transform="translate(118 16)">
+      <rect x="0" y="0" width="50" height="100" rx="3" ry="3" style="fill:#FBFAF7;stroke:#2A2620;stroke-width:0.25"></rect>
+      <path d="M0 11 L0 3 Q0 0 3 0 L47 0 Q50 0 50 3 L50 11 Z" style="fill:#1F8A8A"></path>
+      <text x="25" y="7.6" style="font-family:'Archivo',sans-serif;font-weight:700;font-size:4.4px;letter-spacing:0.6px;text-anchor:middle;fill:#FFFFFF">PICOFACE CP</text>
+
+      <rect x="8.5" y="17" width="33" height="22" rx="0.6" style="fill:url(#hatch)"></rect>
+      <rect x="7.5" y="16" width="35" height="24" rx="1.2" style="fill:none;stroke:#1F8A8A;stroke-width:0.45"></rect>
+      <text x="25" y="27.4" style="font-family:'Space Mono',monospace;font-size:2.2px;letter-spacing:0.4px;text-anchor:middle;fill:#8A8478">DISPLAY</text>
+      <text x="25" y="30.8" style="font-family:'Space Mono',monospace;font-size:1.8px;letter-spacing:0.3px;text-anchor:middle;fill:#A8A296">33 × 22</text>
+
+      <circle cx="25" cy="50" r="3.5" style="fill:url(#hatch);stroke:#1F8A8A;stroke-width:0.55"></circle>
+      <text x="25" y="55.8" style="font-family:'Archivo',sans-serif;font-weight:600;font-size:2.7px;letter-spacing:0.6px;text-anchor:middle;fill:#1E1B16">SELECT</text>
+
+      <circle cx="25" cy="65" r="3.5" style="fill:url(#hatch);stroke:#1F8A8A;stroke-width:0.55"></circle>
+      <text x="25" y="70.8" style="font-family:'Archivo',sans-serif;font-weight:600;font-size:2.7px;letter-spacing:0.6px;text-anchor:middle;fill:#1E1B16">PARAM A</text>
+
+      <circle cx="25" cy="80" r="3.5" style="fill:url(#hatch);stroke:#1F8A8A;stroke-width:0.55"></circle>
+      <text x="25" y="85.8" style="font-family:'Archivo',sans-serif;font-weight:600;font-size:2.7px;letter-spacing:0.6px;text-anchor:middle;fill:#1E1B16">PARAM B</text>
+
+      <rect x="11" y="88" width="28" height="9" rx="4.5" style="fill:none;stroke:#1F8A8A;stroke-width:0.3"></rect>
+      <text x="25" y="92.4" style="font-family:'Archivo',sans-serif;font-weight:600;font-size:2.5px;letter-spacing:0.5px;text-anchor:middle;fill:#1E1B16">PAGE / MENU</text>
+      <text x="25" y="95.8" style="font-family:'Archivo',sans-serif;font-weight:500;font-size:2.2px;letter-spacing:0.4px;text-anchor:middle;fill:#5A554B">EDIT</text>
+    </g>
+
+    <!-- ============ CUT / REGISTRATION MARKS ============ -->
+    <g style="{{ cutStyle }}">
+      <rect x="30" y="16" width="50" height="100" rx="3" style="fill:none;stroke:#8C8578;stroke-width:0.3;stroke-dasharray:1.4 1"></rect>
+      <rect x="118" y="16" width="50" height="100" rx="3" style="fill:none;stroke:#8C8578;stroke-width:0.3;stroke-dasharray:1.4 1"></rect>
+
+      <!-- crop marks A -->
+      <line x1="25" y1="16" x2="29" y2="16" style="stroke:#2A2620;stroke-width:0.25"></line>
+      <line x1="30" y1="11" x2="30" y2="15" style="stroke:#2A2620;stroke-width:0.25"></line>
+      <line x1="81" y1="16" x2="85" y2="16" style="stroke:#2A2620;stroke-width:0.25"></line>
+      <line x1="80" y1="11" x2="80" y2="15" style="stroke:#2A2620;stroke-width:0.25"></line>
+      <line x1="25" y1="116" x2="29" y2="116" style="stroke:#2A2620;stroke-width:0.25"></line>
+      <line x1="30" y1="117" x2="30" y2="121" style="stroke:#2A2620;stroke-width:0.25"></line>
+      <line x1="81" y1="116" x2="85" y2="116" style="stroke:#2A2620;stroke-width:0.25"></line>
+      <line x1="80" y1="117" x2="80" y2="121" style="stroke:#2A2620;stroke-width:0.25"></line>
+      <!-- crop marks B -->
+      <line x1="113" y1="16" x2="117" y2="16" style="stroke:#2A2620;stroke-width:0.25"></line>
+      <line x1="118" y1="11" x2="118" y2="15" style="stroke:#2A2620;stroke-width:0.25"></line>
+      <line x1="169" y1="16" x2="173" y2="16" style="stroke:#2A2620;stroke-width:0.25"></line>
+      <line x1="168" y1="11" x2="168" y2="15" style="stroke:#2A2620;stroke-width:0.25"></line>
+      <line x1="113" y1="116" x2="117" y2="116" style="stroke:#2A2620;stroke-width:0.25"></line>
+      <line x1="118" y1="117" x2="118" y2="121" style="stroke:#2A2620;stroke-width:0.25"></line>
+      <line x1="169" y1="116" x2="173" y2="116" style="stroke:#2A2620;stroke-width:0.25"></line>
+      <line x1="168" y1="117" x2="168" y2="121" style="stroke:#2A2620;stroke-width:0.25"></line>
+
+      <!-- drill crosshairs A -->
+      <line x1="49" y1="66" x2="61" y2="66" style="stroke:#A39C8F;stroke-width:0.2"></line>
+      <line x1="55" y1="60" x2="55" y2="72" style="stroke:#A39C8F;stroke-width:0.2"></line>
+      <circle cx="55" cy="66" r="0.35" style="fill:#A39C8F"></circle>
+      <line x1="49" y1="81" x2="61" y2="81" style="stroke:#A39C8F;stroke-width:0.2"></line>
+      <line x1="55" y1="75" x2="55" y2="87" style="stroke:#A39C8F;stroke-width:0.2"></line>
+      <circle cx="55" cy="81" r="0.35" style="fill:#A39C8F"></circle>
+      <line x1="49" y1="96" x2="61" y2="96" style="stroke:#A39C8F;stroke-width:0.2"></line>
+      <line x1="55" y1="90" x2="55" y2="102" style="stroke:#A39C8F;stroke-width:0.2"></line>
+      <circle cx="55" cy="96" r="0.35" style="fill:#A39C8F"></circle>
+      <!-- drill crosshairs B -->
+      <line x1="137" y1="66" x2="149" y2="66" style="stroke:#A39C8F;stroke-width:0.2"></line>
+      <line x1="143" y1="60" x2="143" y2="72" style="stroke:#A39C8F;stroke-width:0.2"></line>
+      <circle cx="143" cy="66" r="0.35" style="fill:#A39C8F"></circle>
+      <line x1="137" y1="81" x2="149" y2="81" style="stroke:#A39C8F;stroke-width:0.2"></line>
+      <line x1="143" y1="75" x2="143" y2="87" style="stroke:#A39C8F;stroke-width:0.2"></line>
+      <circle cx="143" cy="81" r="0.35" style="fill:#A39C8F"></circle>
+      <line x1="137" y1="96" x2="149" y2="96" style="stroke:#A39C8F;stroke-width:0.2"></line>
+      <line x1="143" y1="90" x2="143" y2="102" style="stroke:#A39C8F;stroke-width:0.2"></line>
+      <circle cx="143" cy="96" r="0.35" style="fill:#A39C8F"></circle>
+
+      <!-- display centre crosshairs -->
+      <line x1="48" y1="44" x2="62" y2="44" style="stroke:#A39C8F;stroke-width:0.18"></line>
+      <line x1="55" y1="37" x2="55" y2="51" style="stroke:#A39C8F;stroke-width:0.18"></line>
+      <line x1="136" y1="44" x2="150" y2="44" style="stroke:#A39C8F;stroke-width:0.18"></line>
+      <line x1="143" y1="37" x2="143" y2="51" style="stroke:#A39C8F;stroke-width:0.18"></line>
+    </g>
+
+    <!-- ============ DIMENSIONS (Variant A) ============ -->
+    <g style="{{ dimStyle }}">
+      <line x1="30" y1="16" x2="22" y2="16" style="stroke:#B7B0A3;stroke-width:0.15"></line>
+      <line x1="30" y1="116" x2="22" y2="116" style="stroke:#B7B0A3;stroke-width:0.15"></line>
+      <line x1="24" y1="16" x2="24" y2="116" style="stroke:#3A352E;stroke-width:0.2;marker-start:url(#arr);marker-end:url(#arr)"></line>
+      <text x="20.6" y="66" transform="rotate(-90 20.6 66)" style="font-family:'Space Mono',monospace;font-size:2.4px;text-anchor:middle;fill:#3A352E">100</text>
+
+      <line x1="30" y1="116" x2="30" y2="121" style="stroke:#B7B0A3;stroke-width:0.15"></line>
+      <line x1="80" y1="116" x2="80" y2="121" style="stroke:#B7B0A3;stroke-width:0.15"></line>
+      <line x1="30" y1="119.5" x2="80" y2="119.5" style="stroke:#3A352E;stroke-width:0.2;marker-start:url(#arr);marker-end:url(#arr)"></line>
+      <text x="55" y="118.6" style="font-family:'Space Mono',monospace;font-size:2.4px;text-anchor:middle;fill:#3A352E">50</text>
+
+      <line x1="71.5" y1="40" x2="86" y2="40" style="stroke:#3A352E;stroke-width:0.18;marker-start:url(#arr)"></line>
+      <text x="87" y="40.8" style="font-family:'Space Mono',monospace;font-size:2.1px;fill:#3A352E">33 × 22 WINDOW</text>
+
+      <line x1="58.5" y1="96" x2="86" y2="96" style="stroke:#3A352E;stroke-width:0.18;marker-start:url(#arr)"></line>
+      <text x="87" y="96.8" style="font-family:'Space Mono',monospace;font-size:2.1px;fill:#3A352E">Ø7 (3×) · EC11</text>
+
+      <line x1="55" y1="66" x2="92" y2="66" style="stroke:#B7B0A3;stroke-width:0.12"></line>
+      <line x1="55" y1="81" x2="92" y2="81" style="stroke:#B7B0A3;stroke-width:0.12"></line>
+      <line x1="90" y1="66" x2="90" y2="81" style="stroke:#3A352E;stroke-width:0.2;marker-start:url(#arr);marker-end:url(#arr)"></line>
+      <text x="93" y="74.6" style="font-family:'Space Mono',monospace;font-size:2.1px;fill:#3A352E">15</text>
+    </g>
+
+    <!-- ============ NOTES ============ -->
+    <text x="8" y="125.5" style="font-family:'Space Mono',monospace;font-weight:700;font-size:2.1px;letter-spacing:0.5px;fill:#1E1B16">NOTES</text>
+    <text x="8" y="128.6" style="font-family:'Space Mono',monospace;font-size:1.9px;fill:#3A352E">1  PRINT 1:1 (100%) — DO NOT SCALE</text>
+    <text x="8" y="131.4" style="font-family:'Space Mono',monospace;font-size:1.9px;fill:#3A352E">2  WHITE VINYL · INK: BLACK + ACCENT</text>
+    <text x="8" y="134.2" style="font-family:'Space Mono',monospace;font-size:1.9px;fill:#3A352E">3  CUT WINDOW 33×22 + 3× Ø7 HOLES</text>
+    <text x="8" y="137" style="font-family:'Space Mono',monospace;font-size:1.9px;fill:#3A352E">4  GLUE SH1106 BEHIND 1mm ACRYLIC</text>
+
+    <!-- B sub-caption -->
+    <text x="143" y="119.5" style="font-family:'Space Mono',monospace;font-size:1.9px;letter-spacing:0.3px;text-anchor:middle;fill:#7A746A">SAME GEOMETRY · TEAL ACCENT</text>
+
+    <!-- ============ TITLE BLOCK ============ -->
+    <rect x="118" y="121" width="84" height="19" style="fill:#F6F3EC;stroke:#1E1B16;stroke-width:0.3"></rect>
+    <line x1="118" y1="125" x2="202" y2="125" style="stroke:#1E1B16;stroke-width:0.2"></line>
+    <line x1="148" y1="125" x2="148" y2="140" style="stroke:#1E1B16;stroke-width:0.15"></line>
+    <text x="120" y="124" style="font-family:'Space Mono',monospace;font-weight:700;font-size:2px;letter-spacing:0.5px;fill:#1E1B16">TITLE BLOCK</text>
+    <text x="200" y="124" style="font-family:'Space Mono',monospace;font-size:1.9px;text-anchor:end;fill:#7A746A">REV A · 2026-06-30</text>
+
+    <text x="120" y="128.4" style="font-family:'Space Mono',monospace;font-size:1.9px;fill:#7A746A">PROJECT</text>
+    <text x="150" y="128.4" style="font-family:'Space Mono',monospace;font-size:1.9px;fill:#1E1B16">PICOFACE CP</text>
+    <text x="120" y="131" style="font-family:'Space Mono',monospace;font-size:1.9px;fill:#7A746A">PART</text>
+    <text x="150" y="131" style="font-family:'Space Mono',monospace;font-size:1.9px;fill:#1E1B16">FRONT PANEL OVERLAY</text>
+    <text x="120" y="133.6" style="font-family:'Space Mono',monospace;font-size:1.9px;fill:#7A746A">SUBSTRATE</text>
+    <text x="150" y="133.6" style="font-family:'Space Mono',monospace;font-size:1.9px;fill:#1E1B16">50×100×1 mm ACRYLIC</text>
+    <text x="120" y="136.2" style="font-family:'Space Mono',monospace;font-size:1.9px;fill:#7A746A">DISPLAY</text>
+    <text x="150" y="136.2" style="font-family:'Space Mono',monospace;font-size:1.9px;fill:#1E1B16">SH1106 1.3"</text>
+    <text x="120" y="138.8" style="font-family:'Space Mono',monospace;font-size:1.9px;fill:#7A746A">ENCODERS</text>
+    <text x="150" y="138.8" style="font-family:'Space Mono',monospace;font-size:1.9px;fill:#1E1B16">3× EC11 · Ø7</text>
+  </svg>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: 794, &quot;height&quot;: 559 },
+  &quot;showCutMarks&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Markup&quot; },
+  &quot;showDims&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Markup&quot; },
+  &quot;showGrid&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Sheet&quot; }
+}">
+class Component extends DCLogic {
+  renderVals() {
+    const hide = (v) => (v === false ? { display: "none" } : {});
+    return {
+      cutStyle: hide(this.props.showCutMarks),
+      dimStyle: hide(this.props.showDims),
+      gridStyle: hide(this.props.showGrid),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+</helmet>
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#DED9D0;padding:28px;box-sizing:border-box;font-family:'Space Mono',monospace">
+  <svg width="70mm" height="120mm" viewBox="0 0 70 120" style="display:block;background:#EFECE5;box-shadow:0 8px 44px rgba(40,36,30,0.30);border:1px solid #C7C1B5">
+    <defs>
+      <pattern id="hatchP" width="1.5" height="1.5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <line x1="0" y1="0" x2="0" y2="1.5" style="stroke:#E0DACF;stroke-width:0.4"></line>
+      </pattern>
+    </defs>
+
+    <rect x="0" y="0" width="70" height="120" style="fill:#EFECE5"></rect>
+
+    <!-- header -->
+    <text x="35" y="6.4" style="font-family:'Space Mono',monospace;font-weight:700;font-size:2.6px;letter-spacing:0.6px;text-anchor:middle;fill:#1E1B16">PICOFACE CP · FOIL A · PLOT 1:1</text>
+
+    <!-- ============ FOIL A ============ -->
+    <g transform="translate(10 10)">
+      <!-- media (white vinyl - not printed, shown for proof only) -->
+      <rect x="0" y="0" width="50" height="100" rx="3" ry="3" style="fill:#FBFAF7"></rect>
+
+      <!-- ===== PRINT LAYER (black + orange) ===== -->
+      <text x="25" y="11" style="font-family:'Archivo',sans-serif;font-weight:700;font-size:4.6px;letter-spacing:0.5px;text-anchor:middle;fill:#1E1B16">PICOFACE <tspan style="fill:#E4572E">CP</tspan></text>
+      <line x1="14" y1="13.4" x2="36" y2="13.4" style="stroke:#E4572E;stroke-width:0.5"></line>
+
+      <rect x="8.5" y="17" width="33" height="22" rx="0.6" style="fill:url(#hatchP)"></rect>
+      <rect x="7.7" y="16.2" width="34.6" height="23.6" rx="1.1" style="fill:none;stroke:#1E1B16;stroke-width:0.35"></rect>
+      <text x="25" y="27.4" style="font-family:'Space Mono',monospace;font-size:2.2px;letter-spacing:0.4px;text-anchor:middle;fill:#8A8478">DISPLAY</text>
+      <text x="25" y="30.8" style="font-family:'Space Mono',monospace;font-size:1.8px;letter-spacing:0.3px;text-anchor:middle;fill:#A8A296">33 × 22</text>
+
+      <line x1="25" y1="45.2" x2="25" y2="46.4" style="stroke:#E4572E;stroke-width:0.8"></line>
+      <text x="25" y="55.8" style="font-family:'Archivo',sans-serif;font-weight:600;font-size:2.7px;letter-spacing:0.6px;text-anchor:middle;fill:#1E1B16">SELECT</text>
+      <line x1="25" y1="60.2" x2="25" y2="61.4" style="stroke:#E4572E;stroke-width:0.8"></line>
+      <text x="25" y="70.8" style="font-family:'Archivo',sans-serif;font-weight:600;font-size:2.7px;letter-spacing:0.6px;text-anchor:middle;fill:#1E1B16">PARAM A</text>
+      <line x1="25" y1="75.2" x2="25" y2="76.4" style="stroke:#E4572E;stroke-width:0.8"></line>
+      <text x="25" y="85.8" style="font-family:'Archivo',sans-serif;font-weight:600;font-size:2.7px;letter-spacing:0.6px;text-anchor:middle;fill:#1E1B16">PARAM B</text>
+
+      <line x1="13" y1="88.5" x2="37" y2="88.5" style="stroke:#E4572E;stroke-width:0.4"></line>
+      <text x="25" y="92.2" style="font-family:'Archivo',sans-serif;font-weight:600;font-size:2.6px;letter-spacing:0.6px;text-anchor:middle;fill:#1E1B16">PAGE / MENU</text>
+      <text x="25" y="96.2" style="font-family:'Archivo',sans-serif;font-weight:500;font-size:2.3px;letter-spacing:0.5px;text-anchor:middle;fill:#5A554B">EDIT</text>
+
+      <!-- ===== CUT LAYER (magenta) ===== -->
+      <rect x="0" y="0" width="50" height="100" rx="3" style="fill:none;stroke:#EC008C;stroke-width:0.25"></rect>
+      <rect x="8.5" y="17" width="33" height="22" rx="0.6" style="fill:none;stroke:#EC008C;stroke-width:0.25"></rect>
+      <circle cx="25" cy="50" r="3.5" style="fill:none;stroke:#EC008C;stroke-width:0.25"></circle>
+      <circle cx="25" cy="65" r="3.5" style="fill:none;stroke:#EC008C;stroke-width:0.25"></circle>
+      <circle cx="25" cy="80" r="3.5" style="fill:none;stroke:#EC008C;stroke-width:0.25"></circle>
+
+      <!-- centring crosshairs (reference) -->
+      <line x1="21" y1="50" x2="29" y2="50" style="stroke:#E59CC4;stroke-width:0.15"></line>
+      <line x1="25" y1="46" x2="25" y2="54" style="stroke:#E59CC4;stroke-width:0.15"></line>
+      <line x1="21" y1="65" x2="29" y2="65" style="stroke:#E59CC4;stroke-width:0.15"></line>
+      <line x1="25" y1="61" x2="25" y2="69" style="stroke:#E59CC4;stroke-width:0.15"></line>
+      <line x1="21" y1="80" x2="29" y2="80" style="stroke:#E59CC4;stroke-width:0.15"></line>
+      <line x1="25" y1="76" x2="25" y2="84" style="stroke:#E59CC4;stroke-width:0.15"></line>
+    </g>
+
+    <!-- ============ CROP MARKS (foil 10..60 × 10..110) ============ -->
+    <line x1="5" y1="10" x2="9" y2="10" style="stroke:#2A2620;stroke-width:0.25"></line>
+    <line x1="10" y1="5" x2="10" y2="9" style="stroke:#2A2620;stroke-width:0.25"></line>
+    <line x1="61" y1="10" x2="65" y2="10" style="stroke:#2A2620;stroke-width:0.25"></line>
+    <line x1="60" y1="5" x2="60" y2="9" style="stroke:#2A2620;stroke-width:0.25"></line>
+    <line x1="5" y1="110" x2="9" y2="110" style="stroke:#2A2620;stroke-width:0.25"></line>
+    <line x1="10" y1="111" x2="10" y2="115" style="stroke:#2A2620;stroke-width:0.25"></line>
+    <line x1="61" y1="110" x2="65" y2="110" style="stroke:#2A2620;stroke-width:0.25"></line>
+    <line x1="60" y1="111" x2="60" y2="115" style="stroke:#2A2620;stroke-width:0.25"></line>
+
+    <!-- ============ LEGEND ============ -->
+    <line x1="10" y1="55" x2="9.2" y2="55" style="stroke:none"></line>
+    <rect x="10" y="112.4" width="3" height="1" style="fill:#EC008C"></rect>
+    <text x="14" y="113.6" style="font-family:'Space Mono',monospace;font-size:2px;fill:#3A352E">SCHNITT / CUT</text>
+    <rect x="33" y="111.8" width="2.4" height="2.4" style="fill:#1E1B16"></rect>
+    <text x="36.4" y="113.6" style="font-family:'Space Mono',monospace;font-size:2px;fill:#3A352E">DRUCK</text>
+    <rect x="48" y="111.8" width="2.4" height="2.4" style="fill:#E4572E"></rect>
+    <text x="51.4" y="113.6" style="font-family:'Space Mono',monospace;font-size:2px;fill:#3A352E">AKZENT</text>
+    <text x="10" y="117" style="font-family:'Space Mono',monospace;font-size:1.9px;fill:#7A746A">SCALE 1:1 · 50 × 100 mm · WHITE VINYL · PRINT &amp; CUT</text>
+  </svg>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: 264, &quot;height&quot;: 453 }
+}">
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
