@@ -29,9 +29,9 @@ public:
         _phaser.init(_sr);
         _delay.init(_sr);
         _reverb.init(_sr);
-        // one-pole env follower coeffs: attack ~8ms, release ~200ms
+        // one-pole env follower coeffs: attack ~8ms, release ~120ms
         float attTau = 0.008f;
-        float relTau = 0.200f;
+        float relTau = 0.120f;
         _envAtt = std::exp(-1.0f / (_sr * attTau));
         _envRel = std::exp(-1.0f / (_sr * relTau));
         reset();
