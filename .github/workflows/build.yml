@@ -22,12 +22,19 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install ARM toolchain & build tools
+      # Ubuntu's "gcc-arm-none-eabi" apt package ships an incomplete libstdc++
+      # (missing headers like <cstring>) that breaks this C++ firmware build.
+      # Use the official prebuilt ARM GNU Toolchain instead.
+      - name: Install ARM GNU Toolchain
+        uses: carlosperate/arm-none-eabi-gcc-action@v1
+        with:
+          release: 'latest'
+
+      - name: Install host build tools
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            cmake ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi \
-            build-essential python3 libusb-1.0-0-dev pkg-config
+            cmake ninja-build build-essential python3 libusb-1.0-0-dev pkg-config
 
       - name: Configure
         run: cmake -S . -B ${{ env.BUILD_DIR }} -G Ninja -DCMAKE_BUILD_TYPE=Release
