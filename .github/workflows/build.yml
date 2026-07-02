@@ -1,0 +1,74 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  BUILD_DIR: build
+
+jobs:
+  build:
+    name: Build firmware (RP2350)
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code (with submodules)
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Install ARM toolchain & build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cmake ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi \
+            build-essential python3 libusb-1.0-0-dev pkg-config
+
+      - name: Configure
+        run: cmake -S . -B ${{ env.BUILD_DIR }} -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build ${{ env.BUILD_DIR }} -j$(nproc)
+
+      - name: Collect firmware artifacts
+        run: |
+          mkdir -p artifacts
+          cp ${{ env.BUILD_DIR }}/main.uf2 artifacts/PicoFaceCP.uf2
+          cp ${{ env.BUILD_DIR }}/main.elf artifacts/PicoFaceCP.elf
+          cp ${{ env.BUILD_DIR }}/main.bin artifacts/PicoFaceCP.bin
+          cp ${{ env.BUILD_DIR }}/main.map artifacts/PicoFaceCP.map
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PicoFaceCP-firmware
+          path: artifacts/*
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download firmware artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: PicoFaceCP-firmware
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: PicoFaceCP ${{ github.ref_name }}
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: artifacts/*
