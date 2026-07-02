@@ -130,7 +130,11 @@ struct CpChorus {
 };
 
 // ============================================================================
-// Effect 2b: PHASER  (sweeping comb via 4-stage all-pass cascade + feedback)
+// Effect 2b: PHASER  (4-stage all-pass cascade + feedback)
+// LFO sweeps the all-pass CORNER FREQUENCY exponentially (in octaves around
+// 750 Hz) instead of the raw coefficient -- the old coefficient-domain sweep
+// parked the notches above 5 kHz where the EP voices have no energy.
+// DEPTH widens the sweep (octaves) and raises feedback; SPEED = LFO rate.
 // ============================================================================
 struct CpPhaser {
     static constexpr int kStages = 4;
@@ -139,8 +143,11 @@ struct CpPhaser {
     float sr;
     float phase;
     float phaseR;
-    float depth;
+    float depthNorm;
     float rateHz;
+    float aL, aR;      // cached all-pass coefficients (updated every 8 samples)
+    float fb;          // cached feedback amount
+    uint32_t cnt;
     float x1L[kStages], y1L[kStages];
     float x1R[kStages], y1R[kStages];
     float lastL, lastR;
@@ -154,12 +161,15 @@ struct CpPhaser {
     void reset() {
         phase = 0.f;
         phaseR = 0.25f * kTwoPi;
+        aL = aR = 0.9f;
+        fb = 0.2f;
+        cnt = 0;
         for (int i = 0; i < kStages; ++i) {
             x1L[i] = y1L[i] = x1R[i] = y1R[i] = 0.f;
         }
         lastL = lastR = 0.f;
     }
-    void setDepth(float n) { depth = cp_clamp01(n) * 0.9f; }
+    void setDepth(float n) { depthNorm = cp_clamp01(n); }
     void setSpeed(float n) {
         n = cp_clamp01(n);
         rateHz = 0.1f * powf(10.f, n * 1.69897000433601880479f);
@@ -169,13 +179,22 @@ struct CpPhaser {
         phase += inc;  if (phase >= kTwoPi) phase -= kTwoPi;
         phaseR += inc; if (phaseR >= kTwoPi) phaseR -= kTwoPi;
 
-        float lfoL = sinf(phase);
-        float lfoR = sinf(phaseR);
-        float aL = depth * lfoL;
-        float aR = depth * lfoR;
+        // corner-frequency sweep + coefficient update every 8 samples
+        // (exp2f/tan too costly per sample; LFO max 5 Hz, so this is inaudible)
+        if ((cnt++ & 7) == 0) {
+            float oct = 0.6f + 1.6f * depthNorm;   // sweep width +-0.6..+-2.2 oct
+            float fcL = 750.0f * exp2f(oct * sinf(phase));
+            float fcR = 750.0f * exp2f(oct * sinf(phaseR));
+            // first-order all-pass corner: a = (1 - tan(pi*fc/sr)) / (1 + tan(pi*fc/sr))
+            float tL = fastTan(3.14159265f * fcL / sr);
+            float tR = fastTan(3.14159265f * fcR / sr);
+            aL = (1.0f - tL) / (1.0f + tL);
+            aR = (1.0f - tR) / (1.0f + tR);
+            fb = 0.2f + 0.55f * depthNorm;
+        }
 
-        float inL = l + 0.5f * fastTanh(lastL);
-        float inR = r + 0.5f * fastTanh(lastR);
+        float inL = l + fb * fastTanh(lastL);
+        float inR = r + fb * fastTanh(lastR);
 
         float sigL = inL, sigR = inR;
         for (int i = 0; i < kStages; ++i) {
