@@ -63,6 +63,12 @@ public:
     // ---- volume ----
     inline void setVolume(float n) { _volume = cp_clamp01(n); }
     inline float getVolume() const { return _volume; }
+    // MIDI CC11 Expression (multiplies master volume)
+    inline void setExpression(float n) { _expr = cp_clamp01(n); }
+    inline float getExpression() const { return _expr; }
+    // Pre-FX gain (attenuate before Drive/FX chain to avoid clipping)
+    inline void setPreGain(float n) { _preGain = cp_clamp01(n); }
+    inline float getPreGain() const { return _preGain; }
 
     // ---- effect 1: tremolo / wah ----
     inline void setTremWahMode(int m) { _twMode = m; }
@@ -137,6 +143,8 @@ private:
     int   _voiceType = RDI;
     float _drive     = 0.0f;
     float _volume    = 1.0f;
+    float _expr      = 1.0f;
+    float _preGain   = 1.0f;
 
     int   _twMode    = TW_OFF;
     float _twDepth   = 0.0f;
@@ -174,6 +182,10 @@ inline void CP_HOT(RefaceCpChain::process)(float* l, float* r, int numFrames) {
     for (int i = 0; i < numFrames; ++i) {
         float L = l[i];
         float R = r[i];
+        if (_preGain < 0.9999f) {
+            L *= _preGain;
+            R *= _preGain;
+        }
 
         if (_drive > 0.0001f) {
             float pre = 1.0f + _drive * 11.0f;
@@ -208,8 +220,9 @@ inline void CP_HOT(RefaceCpChain::process)(float* l, float* r, int numFrames) {
             _reverb.process(L, R);
         }
 
-        L *= _volume;
-        R *= _volume;
+        const float vol = _volume * _expr;
+        L *= vol;
+        R *= vol;
 
         l[i] = L;
         r[i] = R;

@@ -6,6 +6,7 @@
 #include "project_config.h"
 #include "ipc.h"
 #include "midi_input_usb.h"
+#include "midi_reface.h"
 #include "audio_subsystem.h"
 #include "pico_hw.h"
 #include "get_serial.h"
@@ -66,6 +67,7 @@ mdaEPiano ep(96);
 RefaceCpChain cp_fx;
 
 MIDIInputUSB usbmidi;
+RefaceMidi refaceMidi; // Reface CP MIDI layer (Core 1): channel filter, CC map, SysEx, active sensing
 
 #define logoWidth 32
 #define logoHeight 32
@@ -87,13 +89,6 @@ void core1_main(void);
 // ===========================================================================
 // MIDI callbacks (run on Core 1) -- now forward events to Core 0 via the FIFO
 // ===========================================================================
-static inline uint8_t apply_octave(uint8_t note) {
-    int n = (int)note + 12 * g_octave;
-    if (n < 0) n = 0;
-    if (n > 127) n = 127;
-    return (uint8_t)n;
-}
-
 extern "C" void ui_set_octave(int oct) {
     if (oct < -2) oct = -2;
     if (oct > 2) oct = 2;
@@ -105,26 +100,33 @@ extern "C" int ui_get_octave(void) {
 }
 
 void note_on_callback(uint8_t note, uint8_t level, uint8_t channel) {
-    if (level > 0) {
-        ipc_send_note_on(apply_octave(note), level);
-        gpio_put(PIN_LED, 1);
-    } else {
-        ipc_send_note_off(apply_octave(note));
-        gpio_put(PIN_LED, 0);
-    }
+    gpio_put(PIN_LED, level > 0 ? 1 : 0);
+    refaceMidi.onNoteOn(note, level, channel);
 }
 
 void note_off_callback(uint8_t note, uint8_t level, uint8_t channel) {
-    ipc_send_note_off(apply_octave(note));
     gpio_put(PIN_LED, 0);
+    refaceMidi.onNoteOff(note, level, channel);
 }
 
 void cc_callback(uint8_t cc, uint8_t value, uint8_t channel) {
-    if (cc == 1) {                                  // mod wheel -> FX tremolo depth
-        ipc_send_fx_param(FX_TW_DEPTH, (float)value / 127.0f);
-    } else {
-        ipc_send_cc(cc, value);
-    }
+    refaceMidi.onControlChange(cc, value, channel);
+}
+
+void pitch_bend_callback(uint16_t b14, uint8_t channel) {
+    refaceMidi.onPitchBend(b14, channel);
+}
+
+void realtime_callback(uint8_t s) {
+    refaceMidi.onRealtime(s);
+}
+
+void sysex_callback(const uint8_t *d, uint16_t len) {
+    refaceMidi.onSysEx(d, len);
+}
+
+void activity_callback(void) {
+    refaceMidi.notifyActivity();
 }
 
 // ===========================================================================
@@ -153,6 +155,8 @@ static void ipc_apply(uint32_t pkt) {
                 case FX_DLY_TIME: cp_fx.setDelayTime(v); break;
                 case FX_REVERB: cp_fx.setReverbDepth(v); break;
                 case FX_VOLUME: cp_fx.setVolume(v); break;
+                case FX_EXPRESSION: cp_fx.setExpression(v); break;
+                case FX_PRE_GAIN: cp_fx.setPreGain(v); break;
             }
         } break;
         case IPC_CMD_FX_MODE: {
@@ -172,6 +176,9 @@ static void ipc_apply(uint32_t pkt) {
         case IPC_CMD_INSTRUMENT:
             ep.setInstrument(ipc_d1(pkt));
             cp_fx.setVoiceType(ep.getCurrentInstrument());
+            break;
+        case IPC_CMD_PITCH_BEND:
+            ep.setPitchBend((int32_t)ipc_d2(pkt));
             break;
     }
 }
@@ -255,6 +262,7 @@ static void gui_step(void) {
 void ui_poll_usb(void) {
     tud_task();
     usbmidi.process();
+    refaceMidi.tick();
 #if PLAY_RANDOM_NOTES
     play_random_notes_step();
 #endif
@@ -304,6 +312,11 @@ void core1_main(void) {
   usbmidi.setCCCallback(cc_callback);
   usbmidi.setNoteOnCallback(note_on_callback);
   usbmidi.setNoteOffCallback(note_off_callback);
+  usbmidi.setPitchBendCallback(pitch_bend_callback);
+  usbmidi.setRealtimeCallback(realtime_callback);
+  usbmidi.setSysExCallback(sysex_callback);
+  usbmidi.setActivityCallback(activity_callback);
+  refaceMidi.init(&ep, &cp_fx);
   while (1) {
       ui_poll_usb();
       gui_step();

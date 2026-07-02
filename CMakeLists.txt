@@ -63,6 +63,7 @@ add_executable(${PROJECT_NAME}
     src/main.cpp 
     src/pico_hw.cpp
     src/midi_input_usb.cpp
+    src/midi_reface.cpp
     src/get_serial.c
     src/pico_selection_list.cpp
     src/pico_input_value.cpp

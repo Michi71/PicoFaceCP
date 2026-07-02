@@ -12,7 +12,8 @@ enum IpcCommand : uint8_t {
     IPC_CMD_FX_MODE      = 0x05,
     IPC_CMD_VOICE_PARAM  = 0x06,
     IPC_CMD_PROGRAM      = 0x07,
-    IPC_CMD_INSTRUMENT   = 0x08
+    IPC_CMD_INSTRUMENT   = 0x08,
+    IPC_CMD_PITCH_BEND   = 0x09
 };
 
 enum FxParam : uint8_t {
@@ -24,7 +25,9 @@ enum FxParam : uint8_t {
     FX_DLY_DEPTH,
     FX_DLY_TIME,
     FX_REVERB,
-    FX_VOLUME
+    FX_VOLUME,
+    FX_EXPRESSION,
+    FX_PRE_GAIN
 };
 
 enum FxMode : uint8_t {
@@ -89,6 +92,10 @@ static inline void ipc_send_program(uint8_t program) {
 
 static inline void ipc_send_instrument(uint8_t instrument) {
     multicore_fifo_push_blocking(ipc_pack(IPC_CMD_INSTRUMENT, instrument, 0));
+}
+
+static inline void ipc_send_pitch_bend(uint16_t bend14) {
+    multicore_fifo_push_blocking(ipc_pack(IPC_CMD_PITCH_BEND, 0, bend14));
 }
 
 #endif // __IPC_H__

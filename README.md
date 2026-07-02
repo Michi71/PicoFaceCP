@@ -1,5 +1,9 @@
 # PicoFaceCP
 
+<p align="center">
+  <img src="img/picofacecp.png" alt="PicoFaceCP prototype hardware" width="800">
+</p>
+
 **A Yamaha Reface CP emulation for the Raspberry Pi RP2350 (16 MB flash).**
 
 PicoFaceCP turns an RP2350 board into a compact electric-piano module: the
@@ -18,32 +22,44 @@ hardware.
   `Rd I` · `Rd II` · `Wr` · `Clv` · `Piano` · `CP`
 - **Reface CP effect chain** — four insert effects in series plus drive & volume,
   with authentic 3‑position switching per block and voice‑type‑linked tremolo.
-- **USB‑MIDI** input (note on/off, control change, program change).
+- **USB‑MIDI, reface CP‑compatible** — Note On/Off, Pitch Bend (±2 semitones),
+  the full reface CP Control Change map (Modulation, Volume, Expression,
+  Sustain/Sostenuto/Soft Pedal, per‑effect switches & depths, instrument
+  select), Channel Mode Messages, Active Sensing, and SysEx (Identity Reply,
+  Parameter Change/Request, Bulk Dump/Request). Program Change is *not*
+  recognized, matching the original hardware. Full spec:
+  [`doc/MIDI_IMPLEMENTATION.md`](doc/MIDI_IMPLEMENTATION.md).
 - **Paged front‑panel UI** (SH1106 + three encoders) — the Selector encoder
-  pages through seven parameter screens (VOL/OCT · VOICE · TREM/WAH · CHO/PHA ·
-  DLY · REVERB · V.PARAMS); Param A and Param B set the two on‑screen values.
-  A short Selector press cycles the effect mode on the TREM/CHO/DLY screens; a
-  long press opens the Presets / System menu. Octave (−2..+2) transpose lives on
-  the first screen.
-- **Header‑only, RP2350‑optimized DSP** — single‑precision float, no heap, the
-  per‑sample hot path placed in RAM to avoid XIP‑cache jitter inside the audio IRQ.
+  pages through eight parameter screens (VOL/OCT · VOICE · TREM/WAH · CHO/PHA ·
+  DLY · REVERB · V.PARAMS · SYSTEM); Param A and Param B set the two on‑screen
+  values. A short Selector press cycles the effect mode on the TREM/CHO/DLY
+  screens; a long press opens the Presets / System menu. Octave (−2..+2)
+  transpose lives on the first screen; MIDI receive channel and Pre‑Gain live
+  on the last (SYSTEM).
+- **Pre‑Gain** — an extra stage ahead of Drive lets you attenuate the signal
+  feeding the FX chain, since some effects (Drive, Wah) tend to clip hot
+  signals.
+- **Header‑only, RP2350‑optimized DSP** — single‑precision float throughout
+  (engine and effects), no heap, the per‑sample hot path placed in RAM to
+  avoid XIP‑cache jitter inside the audio IRQ.
 - **macOS host demo** (CoreAudio + PortMidi) running the exact same effect code.
 
-Current firmware footprint: **FLASH ≈ 5.6 %** (≈ 0.9 MB / 16 MB), **RAM ≈ 36 %**
-(≈ 187 KB / 512 KB).
+Current firmware footprint: **FLASH ≈ 26.3 %** (≈ 4.4 MB / 16 MB), **RAM ≈ 36.4 %**
+(≈ 191 KB / 512 KB).
 
 ---
 
 ## Signal flow
 
 ```
-              ┌────────┐   ┌──────────────┐   ┌───────────────┐   ┌─────────────────┐   ┌────────┐
-MIDI ▶ Voice ▶│ DRIVE  │ ▶ │ TREMOLO / WAH│ ▶ │ CHORUS /PHASER│ ▶ │ D.DELAY/A.DELAY │ ▶ │ REVERB │ ▶ VOLUME ▶ I2S out
-       engine └────────┘   └──────────────┘   └───────────────┘   └─────────────────┘   └────────┘
+              ┌──────────┐   ┌────────┐   ┌──────────────┐   ┌───────────────┐   ┌─────────────────┐   ┌────────┐
+MIDI ▶ Voice ▶│ PRE‑GAIN │ ▶ │ DRIVE  │ ▶ │ TREMOLO / WAH│ ▶ │ CHORUS /PHASER│ ▶ │ D.DELAY/A.DELAY │ ▶ │ REVERB │ ▶ VOLUME ▶ I2S out
+       engine └──────────┘   └────────┘   └──────────────┘   └───────────────┘   └─────────────────┘   └────────┘
 ```
 
 | Block | Switch positions | Parameters |
 |-------|------------------|------------|
+| **Pre‑Gain** | — | level (PicoFaceCP‑only, no reface CC equivalent; avoids FX clipping) |
 | **Drive** | — | amount |
 | **1 · Tremolo / Wah** | Off / Tremolo / Wah | Depth, Rate |
 | **2 · Chorus / Phaser** | Off / Chorus / Phaser | Depth, Speed |
@@ -101,10 +117,13 @@ effects/              Reface CP effect chain (header-only)
   cp_audio.h            int16 <-> float block glue
   effect_chain.{h,cpp}  Rhodes MK8 reference chain (source of WahWah)
 include/              engine, UI, board and config headers
-src/                  main.cpp, mdaEPiano engine, USB-MIDI, OLED/encoder UI
+src/                  main.cpp, mdaEPiano engine, USB-MIDI transport, OLED/encoder UI
+  midi_reface.{h,cpp}     reface CP MIDI protocol layer (CC map, SysEx, Active Sensing)
   pico_frontpanel.{h,cpp}  virtual front‑panel UI (home screen + main menu)
 test/                 macOS host demo (cp_test.cpp, build_cp.sh)
-doc/                  Reface owner's manual (PDF)
+doc/                  Reface owner's manual + MIDI Data List (PDF)
+  MIDI_IMPLEMENTATION.md   PicoFaceCP MIDI spec (reface CP Data List equivalent)
+  CHANGELOG_MIDI_RP2350.md MIDI layer + RP2350 float-math changelog
 lib/                  pico-sdk, pico-extras, FreeRTOS-Kernel (submodules), u8g2, ...
 ```
 
@@ -166,7 +185,7 @@ two values shown on the current screen. Each value screen looks like:
  Sel:Mode  A/B:edit    <- hint line
 ```
 
-- **Turn the Selector** to step through the 7 screens:
+- **Turn the Selector** to step through the 8 screens:
   1. **VOL / OCT** — master Volume (A) and Octave −2..+2 (B). Octave is a
      Core‑1 note transpose applied before synthesis.
   2. **VOICE** — Voice Type (A) and Drive (B).
@@ -176,6 +195,8 @@ two values shown on the current screen. Each value screen looks like:
   6. **REVERB** — Reverb depth (A).
   7. **V.PARAMS** — scroll the mda‑EPiano parameter list with A, edit the
      selected value with B.
+  8. **SYSTEM** — MIDI receive channel (A, 1‑16 or *All*) and Pre‑Gain (B,
+     0‑100 %, applied ahead of the FX chain).
 - **Short press the Selector** on the TREM / CHO / DLY screens to cycle that
   effect's mode (Off → A → B): Off→Tremolo→Wah, Off→Chorus→Phaser,
   Off→Digital→Analog. The header shows the active mode.
@@ -215,7 +236,9 @@ two values shown on the current screen. Each value screen looks like:
 - **int16 delay line** — the 500 ms stereo delay stores `int16` samples, which is
   lossless relative to the 16‑bit engine source and roughly halves its RAM use.
 - **Single‑precision float** throughout the audio path (the M33 has a hardware FP
-  unit; `double` is avoided).
+  unit; `double` is avoided) — this includes `mdaEPiano`'s note‑on/off envelope
+  and pitch math (`exp`/`pow`/`sqrt` → `expf`/`powf`/`sqrtf`), which runs inside
+  the audio DMA IRQ via the Core‑0 IPC queue.
 
 ---
 

@@ -82,6 +82,7 @@ private:
 struct VOICE  //voice state
 {
   int32_t  delta;  //sample playback
+  int32_t  dbase;  //unbent delta (pitch bend base)
   int32_t  frac;
   int32_t  pos;
   int32_t  end;
@@ -119,6 +120,7 @@ public:
     void noteOff(int32_t note);
 	void process(int16_t *outputs_r, int16_t *outputs_l);
     bool processMidiController(uint8_t data1, uint8_t data2);
+    void setPitchBend(int32_t bend14); // 0..16383, center 8192, +/-2 semitones
 	
 	void resumeVoices();
     void resetVoices(void);
@@ -185,6 +187,7 @@ private:
 	float treb, tfrq, tl, tr;
 	float tune, fine, random, stretch, overdrive;
 	float muff, muffvel, sizevel, velsens, volume, modwhl;
+	float bendf = 1.0f; //current pitch bend factor
 	int32_t curProgram;
 	KGRP   defaultKgrp[64];      /* gespeicherter mda-Default-Keygroup-Satz (Instrument 0) */
 	int32_t defaultNKeygroups;   /* = 33 (mda) */

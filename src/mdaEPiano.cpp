@@ -149,7 +149,7 @@ void mdaEPiano::update()  //parameter change
 
   treb = 4.0f * param[3] * param[3] - 1.0f; //treble gain
   if(param[3] > 0.5f) tfrq = 14000.0f; else tfrq = 5000.0f; //treble freq
-  tfrq = 1.0f - (float)exp(-iFs * tfrq);
+  tfrq = 1.0f - expf(-iFs * tfrq);
 
   rmod = lmod = 0.0f; //lfo depth/autopan -> jetzt FX Trem/Wah
 
@@ -171,7 +171,7 @@ void mdaEPiano::setSampleRate(float rate)
 {
     Fs = rate;
     iFs = 1.0f / Fs;
-    dlfo = 6.283f * iFs * (float)exp(6.22f * programs[curProgram].param[5] - 2.61f); //lfo rate
+    dlfo = 6.283f * iFs * expf(6.22f * programs[curProgram].param[5] - 2.61f); //lfo rate
 }
 
 
@@ -218,7 +218,7 @@ void mdaEPiano::resumeVoices()
 {
 	Fs = SAMPLING_RATE;
 	iFs = 1.0f / Fs;
-	dlfo = 6.283f * iFs * (float)exp(6.22f * programs[ 0].param[5] - 2.61f); //lfo rate
+	dlfo = 6.283f * iFs * expf(6.22f * programs[ 0].param[5] - 2.61f); //lfo rate
 }
 
 
@@ -249,7 +249,7 @@ void mdaEPiano::setVolume(uint8_t value)
 
 uint8_t mdaEPiano::getVolume(void)
 {
-  float value = (uint8_t)sqrt(50000 * volume);
+  float value = sqrtf(50000.0f * volume);
   return(value);
 }
 
@@ -366,7 +366,7 @@ void mdaEPiano::getParameterDisplay(int32_t index, char *text)
         sprintf(string, "Pan %.0f", 100.0f - 200.0f * param[index]);
       break;
 
-    case  5: sprintf(string, "%.2f", (float)exp(6.22f * param[5] - 2.61f)); break; //LFO Hz
+    case  5: sprintf(string, "%.2f", expf(6.22f * param[5] - 2.61f)); break; //LFO Hz
     case  7: sprintf(string, "%.0f", 200.0f * param[index]); break;
     case  8: sprintf(string, "%d", poly); break;
     case 10: sprintf(string, "%.1f",  50.0f * param[index] * param[index]); break;
@@ -462,8 +462,8 @@ void mdaEPiano::process(int16_t* outputs_r, int16_t* outputs_l)
     outputs_r[frame] = static_cast<int16_t>(r * 0x7fff);
   }
 
-  if (fabs(tl) < 1.0e-10) tl = 0.0f; //anti-denormal
-  if (fabs(tr) < 1.0e-10) tr = 0.0f;
+  if (fabsf(tl) < 1.0e-10f) tl = 0.0f; //anti-denormal
+  if (fabsf(tr) < 1.0e-10f) tr = 0.0f;
   
   if(activevoices == 0 && programs[curProgram].param[4] > 0.5f) 
 	{ lfo0 = -0.7071f;  lfo1 = 0.7071f; } //reset LFO phase - good idea?
@@ -506,8 +506,9 @@ void mdaEPiano::noteOn(int32_t note, int32_t velocity)
     k = 0;
     while((k + noteonStep) < nKeygroups && note > (kgrp[k].high + s)) k += noteonStep;  //find keygroup (generalisiert)
     l += (float)(note - kgrp[k].root); //pitch
-    l = 32000.0f * iFs * (float)exp(0.05776226505 * l);
-    voice[vl].delta = (int32_t)(65536.0f * l);
+    l = 32000.0f * iFs * expf(0.05776227f * l);
+    voice[vl].dbase = (int32_t)(65536.0f * l);
+    voice[vl].delta = (int32_t)((float)voice[vl].dbase * bendf);
     voice[vl].frac = 0;
 
     if(velocity > 48) k++; //mid velocity sample
@@ -516,9 +517,9 @@ void mdaEPiano::noteOn(int32_t note, int32_t velocity)
     voice[vl].end = kgrp[k].end - 1;
     voice[vl].loop = kgrp[k].loop;
 
-    voice[vl].env = (3.0f + 2.0f * velsens) * (float)pow(0.0078f * velocity, velsens); //velocity
+    voice[vl].env = (3.0f + 2.0f * velsens) * powf(0.0078f * (float)velocity, velsens); //velocity
 
-    if(note > 60) voice[vl].env *= (float)exp(0.01f * (float)(60 - note)); //new! high notes quieter
+    if(note > 60) voice[vl].env *= expf(0.01f * (float)(60 - note)); //new! high notes quieter
 
     l = 50.0f + param[4] * param[4] * muff + muffvel * (float)(velocity - 64); //muffle
     if(l < (55.0f + 0.4f * (float)note)) l = 55.0f + 0.4f * (float)note;
@@ -533,7 +534,7 @@ void mdaEPiano::noteOn(int32_t note, int32_t velocity)
     voice[vl].outl = l + l - voice[vl].outr;
 
     if(note < 44) note = 44; //limit max decay length
-    voice[vl].dec = (float)exp(-iFs * exp(-1.0 + 0.03 * (double)note - 2.0f * param[0]));
+    voice[vl].dec = expf(-iFs * expf(-1.0f + 0.03f * (float)note - 2.0f * param[0]));
   }
   else //note off
   {
@@ -541,7 +542,7 @@ void mdaEPiano::noteOn(int32_t note, int32_t velocity)
     {
       if(sustain==0)
       {
-        voice[v].dec = (float)exp(-iFs * exp(6.0 + 0.01 * (double)note - 5.0 * param[1]));
+        voice[v].dec = expf(-iFs * expf(6.0f + 0.01f * (float)note - 5.0f * param[1]));
       }
       else voice[v].note = SUSTAIN;
     }
@@ -552,6 +553,18 @@ void mdaEPiano::noteOn(int32_t note, int32_t velocity)
 void mdaEPiano::noteOff(int32_t note)
 {
 	noteOn(note,0);
+}
+
+void mdaEPiano::setPitchBend(int32_t bend14)
+{
+	if (bend14 < 0) bend14 = 0;
+	if (bend14 > 16383) bend14 = 16383;
+	float semis = (float)(bend14 - 8192) * (2.0f / 8192.0f);
+	bendf = exp2f(semis * (1.0f / 12.0f));
+	for (int32_t v = 0; v < activevoices; v++)
+	{
+		voice[v].delta = (int32_t)((float)voice[v].dbase * bendf);
+	}
 }
 
 
