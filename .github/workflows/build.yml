@@ -48,7 +48,7 @@ jobs:
           cp ${{ env.BUILD_DIR }}/main.uf2 artifacts/PicoFaceCP.uf2
           cp ${{ env.BUILD_DIR }}/main.elf artifacts/PicoFaceCP.elf
           cp ${{ env.BUILD_DIR }}/main.bin artifacts/PicoFaceCP.bin
-          cp ${{ env.BUILD_DIR }}/main.map artifacts/PicoFaceCP.map
+          cp ${{ env.BUILD_DIR }}/main.elf.map artifacts/PicoFaceCP.elf.map
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
