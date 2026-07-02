@@ -84,7 +84,7 @@ endif ()
 pico_set_boot_stage2(${PROJECT_NAME} slower_boot2)
     
 
-pico_set_program_name(${PROJECT_NAME} "main")
+pico_set_program_name(${PROJECT_NAME} "PicoFaceCP")
 pico_set_program_version(${PROJECT_NAME} "0.1")
 
 pico_enable_stdio_uart(${PROJECT_NAME} 1)

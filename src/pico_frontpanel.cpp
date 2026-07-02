@@ -253,6 +253,59 @@ void pico_UserInterfaceFrontPanel(u8g2_t* u8g2, Encoder* encSel, PushButton* btS
             ui_poll_usb();
             uint32_t now = to_ms_since_boot(get_absolute_time());
 
+            /* ----- External change poll: refresh stale cached locals ----- */
+            bool extChanged = false;
+            switch (screen) {
+                case SCR_VOLOCT: {
+                    auto v = fx->getVolume();
+                    if (v != vol) { vol = v; extChanged = true; }
+                } break;
+                case SCR_VOICE: {
+                    auto v = ep->getCurrentInstrument();
+                    auto d = fx->getDrive();
+                    if (v != instr) { instr = v; extChanged = true; }
+                    if (d != drv)   { drv = d; extChanged = true; }
+                } break;
+                case SCR_TREM: {
+                    auto m = fx->getTremWahMode();
+                    auto d = fx->getTremWahDepth();
+                    auto r = fx->getTremWahRate();
+                    if (m != twM) { twM = m; extChanged = true; }
+                    if (d != twD) { twD = d; extChanged = true; }
+                    if (r != twR) { twR = r; extChanged = true; }
+                } break;
+                case SCR_CHO: {
+                    auto m = fx->getChoPhaMode();
+                    auto d = fx->getChoPhaDepth();
+                    auto s = fx->getChoPhaSpeed();
+                    if (m != cpM) { cpM = m; extChanged = true; }
+                    if (d != cpD) { cpD = d; extChanged = true; }
+                    if (s != cpS) { cpS = s; extChanged = true; }
+                } break;
+                case SCR_DLY: {
+                    auto m = fx->getDelayMode();
+                    auto d = fx->getDelayDepth();
+                    auto t = fx->getDelayTime();
+                    if (m != dlyM) { dlyM = m; extChanged = true; }
+                    if (d != dlyD) { dlyD = d; extChanged = true; }
+                    if (t != dlyT) { dlyT = t; extChanged = true; }
+                } break;
+                case SCR_REV: {
+                    auto v = fx->getReverbDepth();
+                    if (v != rev) { rev = v; extChanged = true; }
+                } break;
+                case SCR_VPARAM: {
+                    auto v = ep->getParameter(vpIdx);
+                    if (v != vpVal) { vpVal = v; extChanged = true; }
+                } break;
+                case SCR_SYSTEM: {
+                    auto v = refaceMidi.getRxChannel();
+                    if (v != midiCh) { midiCh = v; extChanged = true; }
+                } break;
+                default: break;
+            }
+            if (extChanged) break;
+
             /* ----- Selector button (short / long press) ----- */
             bool selState = btSel->ReadButton();
             if (selState == PushButton::PRESSED) {

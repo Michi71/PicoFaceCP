@@ -213,17 +213,23 @@ struct CpPhaser {
 
 // ============================================================================
 // Effect 3: D.DELAY / A.DELAY  (digital vs analog stereo delay)
-//   mode 0 = DIGITAL (clean)
-//   mode 1 = ANALOG  (one-pole lowpass + gentle fastTanh saturation in fb)
+//   mode 0 = DIGITAL (clean repeats)
+//   mode 1 = ANALOG  (BBD-style: EVERY pass into the buffer is lowpassed
+//            (~2.5 kHz) and softly saturated, so repeats get progressively
+//            darker -- including the first one -- plus a slow clock wobble.
+//            The old version filtered only the feedback path, so the first
+//            repeat was identical to digital mode and barely distinguishable.)
 // ============================================================================
 struct CpDelay {
     static constexpr int kBuf = 24001;   // 500 ms @ 48 kHz
+    static constexpr float kTwoPi = 6.28318530718f;
 
     float sr;
     int mode;
     float mix;
     float feedback;
     float delaySamp;
+    float modPhase;                       // BBD clock wobble LFO (analog mode)
     int16_t bufL[kBuf], bufR[kBuf];   // int16 storage halves RAM (engine source is 16-bit anyway)
     int wIdx;
     float lpL, lpR;
@@ -239,6 +245,7 @@ struct CpDelay {
         for (int i = 0; i < kBuf; ++i) { bufL[i] = 0; bufR[i] = 0; }
         wIdx = 0;
         lpL = lpR = 0.f;
+        modPhase = 0.f;
     }
     void setMode(int m) { mode = (m == 1) ? 1 : 0; }
     void setDepth(float n) {
@@ -253,7 +260,16 @@ struct CpDelay {
         if (delaySamp > (float)(kBuf - 1)) delaySamp = (float)(kBuf - 1);
     }
     void CP_HOT(process)(float& l, float& r) {
-        float rpos = (float)wIdx - delaySamp;
+        // BBD clock wobble: +-0.08 % delay-time modulation at 0.9 Hz (analog only)
+        modPhase += 0.9f / sr;
+        if (modPhase >= 1.f) modPhase -= 1.f;
+        float delayEff = delaySamp;
+        if (mode == 1) {
+            delayEff *= 1.0f + 0.0008f * sinf(kTwoPi * modPhase);
+            if (delayEff > (float)(kBuf - 2)) delayEff = (float)(kBuf - 2);
+        }
+
+        float rpos = (float)wIdx - delayEff;
         while (rpos < 0.f) rpos += (float)kBuf;
         while (rpos >= (float)kBuf) rpos -= (float)kBuf;
         int i0 = (int)rpos;
@@ -266,17 +282,18 @@ struct CpDelay {
         float dL = sL0 + frac * (sL1 - sL0);
         float dR = sR0 + frac * (sR1 - sR0);
 
-        float fbL = dL * feedback;
-        float fbR = dR * feedback;
+        float wL = l + dL * feedback;
+        float wR = r + dR * feedback;
         if (mode == 1) {
-            lpL = lpL + 0.4f * (fbL - lpL);
-            lpR = lpR + 0.4f * (fbR - lpR);
-            fbL = fastTanh(lpL);
-            fbR = fastTanh(lpR);
+            // BBD pass: darken + softly saturate EVERYTHING entering the buffer
+            lpL += 0.3f * (wL - lpL);
+            lpR += 0.3f * (wR - lpR);
+            wL = fastTanh(lpL);
+            wR = fastTanh(lpR);
         }
 
-        float cL = (l + fbL) * 32768.f;
-        float cR = (r + fbR) * 32768.f;
+        float cL = wL * 32768.f;
+        float cR = wR * 32768.f;
         if (cL > 32767.f) cL = 32767.f; else if (cL < -32768.f) cL = -32768.f;
         if (cR > 32767.f) cR = 32767.f; else if (cR < -32768.f) cR = -32768.f;
         bufL[wIdx] = (int16_t)lrintf(cL);

@@ -332,11 +332,11 @@ int main(void) {
   cp_fx.init((float)SAMPLING_RATE);
   cp_fx.setVoiceType(ep.getCurrentInstrument());
   cp_fx.setVolume(0.9f);
-  cp_fx.setDrive(0.15f);
-  cp_fx.setChoPhaMode(RefaceCpChain::CP_CHORUS);
+  cp_fx.setDrive(0.0f);
+  cp_fx.setChoPhaMode(RefaceCpChain::CP_OFF);
   cp_fx.setChoPhaDepth(0.4f);
   cp_fx.setChoPhaSpeed(0.3f);
-  cp_fx.setReverbDepth(0.25f);
+  cp_fx.setReverbDepth(0.0f);
   cp_fx.setTremWahMode(RefaceCpChain::TW_OFF);
   cp_fx.setDelayMode(RefaceCpChain::DLY_OFF);
   // Core 1 (USB/MIDI/UI) must launch BEFORE init_audio(): the SDK uses the SIO

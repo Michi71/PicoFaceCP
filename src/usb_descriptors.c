@@ -50,7 +50,7 @@ tusb_desc_device_t const desc_device =
     .bMaxPacketSize0    = CFG_TUD_ENDPOINT0_SIZE,
 
     .idVendor           = 0x2E8A,
-    .idProduct          = 0x104B,
+    .idProduct          = 0x104C,   // bumped from 0x104B so hosts don't reuse stale cached names ("main")
     .bcdDevice          = 0x0101,
 
     .iManufacturer      = 0x01,
@@ -95,7 +95,8 @@ uint8_t const desc_fs_configuration[] =
   TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
 
   // Interface number, string index, EP Out & EP In address, EP size
-  TUD_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI, 0x80 | EPNUM_MIDI, 64)
+  // string index 2 (= Product) names the MIDI interface -> hosts use it as the port name
+  TUD_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 2, EPNUM_MIDI, 0x80 | EPNUM_MIDI, 64)
 };
 
 #if TUD_OPT_HIGH_SPEED
@@ -105,7 +106,7 @@ uint8_t const desc_hs_configuration[] =
   TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
 
   // Interface number, string index, EP Out & EP In address, EP size
-  TUD_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI, 0x80 | EPNUM_MIDI, 512)
+  TUD_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 2, EPNUM_MIDI, 0x80 | EPNUM_MIDI, 512)
 };
 #endif
 
@@ -133,7 +134,7 @@ char const* string_desc_arr [] =
 {
   (const char[]) { 0x09, 0x04 }, 	// 0: is supported language is English (0x0409)
   "MIDICompany",                 	// 1: Manufacturer
-  "reface cp",              // 2: Product
+  "PicoFaceCP",             // 2: Product
   usb_serial,                 		// 3: Serials, should use chip ID
 };
 
