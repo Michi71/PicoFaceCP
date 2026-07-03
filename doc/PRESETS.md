@@ -25,27 +25,18 @@ Reface CP, das keine Presets besitzt.
 3. Encoder blättert durch P0…P7.
 4. Preset wird **sofort angewendet**.
 
-### (b) MIDI CC80
+### (b) MIDI Program Change
 
-CC80 steuert die Presets in **8 gleich großen Zonen**:
+Ein **Program Change 0–7** wählt das entsprechende Preset P0…P7; Werte ≥ 8
+werden ignoriert. Bei Preset-Wahl im Menü sendet die Firmware den passenden
+Program Change auf dem TX-Kanal.
 
-| CC80-Bereich | Preset |
-|-------------|--------|
-| 0–15         | P0     |
-| 16–31        | P1     |
-| 32–47        | P2     |
-| 48–63        | P3     |
-| 64–79        | P4     |
-| 80–95        | P5     |
-| 96–111       | P6     |
-| 112–127      | P7     |
-
-Beim Senden verwendet die TX-Seite die jeweilige **Zonenmitte**
-(8, 24, 40, 56, 72, 88, 104, 120).
-
-> **Hinweis:** CC80 war bisher dem Instrument-Selektor (TYPE) zugeordnet.
-> Die Instrumentwahl am Panel (VOICE-Screen) bleibt weiterhin möglich,
-> sendet jedoch **kein CC80** mehr.
+> **Hinweis:** Das Original-Reface-CP implementiert Program Change gar nicht —
+> dies ist die einzige Preset-bedingte MIDI-Abweichung. **CC80 (TYPE) behält
+> die Original-Bedeutung** und wählt wie beim Yamaha-Gerät das Instrument
+> (6 Zonen); die Instrumentwahl am VOICE-Screen sendet weiterhin CC80.
+> Program Change ist nicht an die MIDI-Control-Einstellung gebunden, nur an
+> den Empfangskanal-Filter.
 
 ---
 

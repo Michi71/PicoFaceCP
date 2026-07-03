@@ -186,11 +186,30 @@ void RefaceMidi::txFxMode(uint8_t fxMode, int mode) {
     txCC(cc, val);
 }
 
-void RefaceMidi::txProgram(int preset) {
+void RefaceMidi::txInstrument(int instr) {
     if (!midiControlEnabled()) return;
+    static const uint8_t t[6] = {0, 25, 51, 76, 102, 127};
+    if (instr < 0) instr = 0;
+    if (instr > 5) instr = 5;
+    txCC(80, t[instr]);
+}
+
+// Program Change is a PicoFaceCP extension (the original has no PC at all),
+// so it is not gated by the MIDI Control setting -- like notes.
+void RefaceMidi::txProgram(int preset) {
     if (preset < 0) preset = 0;
     if (preset > CP_NPRESETS - 1) preset = CP_NPRESETS - 1;
-    txCC(80, preset_to_cc((uint8_t)preset));
+    uint8_t msg[2];
+    msg[0] = 0xC0 | (_sys[SYS_TX_CH] & 0x0F);
+    msg[1] = (uint8_t)preset;
+    txBytes(msg, 2);
+}
+
+void RefaceMidi::onProgramChange(uint8_t program, uint8_t ch) {
+    if (!channelOk(ch)) return;
+    if (program >= CP_NPRESETS) return;
+    preset_set_current(program);
+    ipc_send_program(program);
 }
 
 // ===========================================================================
@@ -214,9 +233,14 @@ void RefaceMidi::onControlChange(uint8_t cc, uint8_t val, uint8_t ch) {
     case 19: if (midiControlEnabled()) ipc_send_fx_param(FX_TW_RATE, v01); break;
     case 80: {
         if (midiControlEnabled()) {
-            uint8_t p = preset_from_cc(val);
-            preset_set_current(p);
-            ipc_send_program(p);
+            uint8_t i;
+            if      (val <= 21)  i = 0;
+            else if (val <= 42)  i = 1;
+            else if (val <= 64)  i = 2;
+            else if (val <= 85)  i = 3;
+            else if (val <= 106) i = 4;
+            else                 i = 5;
+            ipc_send_instrument(i);
         }
         break;
     }

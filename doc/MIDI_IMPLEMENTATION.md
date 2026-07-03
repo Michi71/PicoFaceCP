@@ -28,7 +28,7 @@ Diese Spezifikation beschreibt Senden und Empfang von MIDI-Daten des PicoFaceCP
 | Note On / Off | `9nH` (v=0 → Off) | ✓ | ✗ | v = 1–127; kein lokales Keyboard, daher kein TX |
 | Control Change | `BnH` | ✓ | ✓ | Tabelle unten; TX nur Panel-CCs bei MIDI Control = on |
 | Pitch Bend | `EnH` | ✓ | ✗ | ±2 Halbtöne, wirkt auf alle aktiven Voices |
-| Program Change | `CnH` | ✗ | ✗ | wie reface CP |
+| Program Change | `CnH` | ✓ | ✓ | **Abweichung:** PC 0–7 wählt Werkspreset (`doc/PRESETS.md`); Original hat kein PC |
 | Aftertouch (Key/Ch) | `AnH`/`DnH` | ✗ | ✗ | |
 
 Empfangskanal: SYSTEM-Parameter `MIDI receive channel` (1–16, All; Default **All**).
@@ -51,7 +51,7 @@ Identisch zur reface-CP-Tabelle (Data List S. 13):
 
 | CC | Name | Wertebereiche (RX) | TX-Werte |
 |---|---|---|---|
-| 80 | PRESET (Abweichung, war TYPE) | 8 Zonen à 16: 0–15 P0 · 16–31 P1 · … · 112–127 P7 (siehe `doc/PRESETS.md`) | Zonenmitte 8 / 24 / … / 120 |
+| 80 | TYPE | 0–21 Rd I · 22–42 Rd II · 43–64 Wr · 65–85 Clv · 86–106 Toy(=Pno) · 107–127 CP | 0 / 25 / 51 / 76 / 102 / 127 |
 | 81 | DRIVE | 0–127 | 0–127 |
 | 17 | TREMOLO/WAH SWITCH | 0–42 Off · 43–85 Tremolo · 86–127 Wah | 0 / 64 / 127 |
 | 18 | TREMOLO/WAH DEPTH | 0–127 | 0–127 |
@@ -65,9 +65,9 @@ Identisch zur reface-CP-Tabelle (Data List S. 13):
 | 91 | REVERB DEPTH | 0–127 | 0–127 |
 
 TX erfolgt bei Änderung am (virtuellen) Frontpanel (`pico_frontpanel.cpp` →
-`fp_send_*`-Wrapper → `RefaceMidi::txFxParam/txFxMode`) bzw. bei Preset-Wahl
-im Menü (`RefaceMidi::txProgram` → CC 80 Zonenmitte). Die Instrumentwahl am
-VOICE-Screen sendet kein CC 80 mehr (CC 80 = Preset, siehe Abweichung 7).
+`fp_send_*`-Wrapper → `RefaceMidi::txFxParam/txFxMode/txInstrument`) bzw. bei
+Preset-Wahl im Menü (`RefaceMidi::txProgram` → Program Change 0–7, siehe
+Abweichung 7).
 
 ### 3-2 Channel Mode Messages (RX)
 
@@ -197,7 +197,7 @@ Change     64,66,67 x                 o                Sustain, Sostenuto, Soft
            17-19   o *1               o *1
            80,81   o *1               o *1
            85-91   o *1               o *1
-Program Change     x                  x
+Program Change     o (0-7)            o (0-7)          Werkspresets (Abweichung)
 System Exclusive   o                  o                Param Change/Request,
                                                        Bulk Dump/Request, Identity
 System Common      x                  x
@@ -226,8 +226,9 @@ Mode 1: OMNI ON, POLY   Mode 3: OMNI OFF, POLY   o: Yes  x: No
    (nur die Spielcontroller: Pitch Bend, Expression, Pedale).
 6. **Auto Power-Off / Speaker Output / Sustain Pedal Select** werden gespeichert und
    im Bulk Dump geführt, haben aber keine Hardware-Funktion.
-7. **CC 80 wählt Werkspresets statt des Voice-Typs (TYPE).** PicoFaceCP hat 8
-   statische Presets (Instrument + Engine-Params + FX-Kette, `doc/PRESETS.md`),
-   die das Original nicht kennt; RX in 8 Zonen à 16, TX als Zonenmitte. Die
-   reine Instrumentwahl bleibt lokal am VOICE-Screen (ohne MIDI-TX) und per
-   SysEx TG `02 Wave Type` möglich.
+7. **Program Change ist implementiert (Original: nicht vorhanden).** PC 0–7
+   wählt eines der 8 statischen Werkspresets (Instrument + Engine-Params +
+   FX-Kette, `doc/PRESETS.md`); Werte ≥ 8 werden ignoriert. TX bei Preset-Wahl
+   im Menü. Nicht durch die MIDI-Control-Einstellung gegated (eigene
+   Erweiterung, wie Noten nur durch den Empfangskanal gefiltert). CC 80 (TYPE)
+   behält die Original-Bedeutung (Instrumentwahl in 6 Zonen).

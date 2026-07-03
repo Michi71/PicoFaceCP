@@ -81,19 +81,6 @@ void preset_apply(uint8_t idx, mdaEPiano* ep, RefaceCpChain* fx)
     fx->setReverbDepth(p.reverb);
 }
 
-uint8_t preset_from_cc(uint8_t val)
-{
-    uint8_t idx = val / 16u;
-    if (idx > CP_NPRESETS - 1u) idx = CP_NPRESETS - 1u;
-    return idx;
-}
-
-uint8_t preset_to_cc(uint8_t idx)
-{
-    if (idx > CP_NPRESETS - 1u) idx = CP_NPRESETS - 1u;
-    return (uint8_t)(idx * 16u + 8u);
-}
-
 static uint8_t s_current = 0;
 
 void preset_set_current(uint8_t idx)

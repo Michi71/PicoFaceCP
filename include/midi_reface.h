@@ -65,6 +65,7 @@ public:
   void onNoteOn(uint8_t note, uint8_t vel, uint8_t ch);
   void onNoteOff(uint8_t note, uint8_t vel, uint8_t ch);
   void onControlChange(uint8_t cc, uint8_t val, uint8_t ch);
+  void onProgramChange(uint8_t program, uint8_t ch);  // PC 0..7 -> factory preset (deviation: original has no PC)
   void onPitchBend(uint16_t bend14, uint8_t ch);
   void onRealtime(uint8_t status);
   void onSysEx(const uint8_t* data, uint16_t len);
@@ -73,7 +74,8 @@ public:
   // Front panel -> MIDI OUT (CC), gated by MIDI Control setting.
   void txFxParam(uint8_t fxParam, float v01);  // FxParam id (ipc.h) -> CC 18/19/81/86/87/89/90/91
   void txFxMode(uint8_t fxMode, int mode);     // FxMode id (ipc.h) -> CC 17/85/88 (0/64/127)
-  void txProgram(int preset);                  // -> CC 80 zone centre (preset_to_cc)
+  void txInstrument(int instr);                // -> CC 80 (0,25,51,76,102,127)
+  void txProgram(int preset);                  // -> Program Change 0..7 (factory preset)
 
   // Front-panel SYSTEM screen access to MIDI RX channel (same core, no IPC).
   uint8_t getRxChannel() const { return _sys[SYS_RX_CH]; }   // 0..15 = ch 1-16, RX_CH_ALL = omni

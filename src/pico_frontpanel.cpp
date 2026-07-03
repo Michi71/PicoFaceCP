@@ -27,8 +27,7 @@ static int pct(float v){int x=(int)(v*100.0f+0.5f); if(x<0)x=0; if(x>99)x=99; re
 extern RefaceMidi refaceMidi;
 static void fp_send_fx_param(uint8_t id, float v){ ipc_send_fx_param(id, v); refaceMidi.txFxParam(id, v); }
 static void fp_send_fx_mode(uint8_t id, uint8_t m){ ipc_send_fx_mode(id, m); refaceMidi.txFxMode(id, (int)m); }
-// CC80 now selects presets, not instruments; Type change stays local + IPC.
-static void fp_send_instrument(int i){ ipc_send_instrument((uint8_t)i); }
+static void fp_send_instrument(int i){ ipc_send_instrument((uint8_t)i); refaceMidi.txInstrument(i); }
 
 /* ------------------------------------------------------------------ */
 /* Menu helpers (use selector encoder / button)                       */

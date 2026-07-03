@@ -11,6 +11,7 @@ public:
     using NoteOnCallback       = void (*)(uint8_t, uint8_t, uint8_t);
     using NoteOffCallback      = void (*)(uint8_t, uint8_t, uint8_t);
     using CCCallback           = void (*)(uint8_t, uint8_t, uint8_t);
+    using ProgramChangeCallback = void (*)(uint8_t, uint8_t);
     using PitchBendCallback    = void (*)(uint16_t, uint8_t);
     using RealtimeCallback     = void (*)(uint8_t);
     using SysExCallback        = void (*)(const uint8_t*, uint16_t);
@@ -23,6 +24,7 @@ public:
     void setNoteOnCallback(NoteOnCallback cb)            { MIDINoteOnCallback = cb; }
     void setNoteOffCallback(NoteOffCallback cb)          { MIDINoteOffCallback = cb; }
     void setCCCallback(CCCallback cb)                    { MIDICCCallback = cb; }
+    void setProgramChangeCallback(ProgramChangeCallback cb) { MIDIProgramChangeCallback = cb; }
     void setPitchBendCallback(PitchBendCallback cb)      { MIDIPitchBendCallback = cb; }
     void setRealtimeCallback(RealtimeCallback cb)        { MIDIRealtimeCallback = cb; }
     void setSysExCallback(SysExCallback cb)              { MIDISysExCallback = cb; }
@@ -36,6 +38,7 @@ private:
     NoteOnCallback       MIDINoteOnCallback       = nullptr;
     NoteOffCallback      MIDINoteOffCallback      = nullptr;
     CCCallback           MIDICCCallback           = nullptr;
+    ProgramChangeCallback MIDIProgramChangeCallback = nullptr;
     PitchBendCallback    MIDIPitchBendCallback    = nullptr;
     RealtimeCallback     MIDIRealtimeCallback     = nullptr;
     SysExCallback        MIDISysExCallback        = nullptr;

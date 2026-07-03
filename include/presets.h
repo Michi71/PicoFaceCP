@@ -26,7 +26,5 @@ struct CpPreset {
 extern const CpPreset cpPresets[CP_NPRESETS];
 
 void preset_apply(uint8_t idx, mdaEPiano* ep, RefaceCpChain* fx); // Core 0 only (called from IPC dispatch)
-uint8_t preset_from_cc(uint8_t val);  // CC80 value 0..127 -> preset index (8 equal zones: val/16, clamp to 7)
-uint8_t preset_to_cc(uint8_t idx);    // zone centre: idx*16+8, clamp idx to 7
 void preset_set_current(uint8_t idx); // Core-1-side UI tracking
 uint8_t preset_get_current(void);

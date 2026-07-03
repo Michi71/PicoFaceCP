@@ -189,6 +189,10 @@ void cc_callback(uint8_t cc, uint8_t value, uint8_t channel) {
     refaceMidi.onControlChange(cc, value, channel);
 }
 
+void program_change_callback(uint8_t program, uint8_t channel) {
+    refaceMidi.onProgramChange(program, channel);
+}
+
 void pitch_bend_callback(uint16_t b14, uint8_t channel) {
     refaceMidi.onPitchBend(b14, channel);
 }
@@ -410,6 +414,7 @@ void core1_main(void) {
       sleep_ms(1);
   }
   usbmidi.setCCCallback(cc_callback);
+  usbmidi.setProgramChangeCallback(program_change_callback);
   usbmidi.setNoteOnCallback(note_on_callback);
   usbmidi.setNoteOffCallback(note_off_callback);
   usbmidi.setPitchBendCallback(pitch_bend_callback);
