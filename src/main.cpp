@@ -28,6 +28,7 @@
 #include "mdaEPiano.h"
 #include "cp_audio.h"
 #include "settings.h"
+#include "presets.h"
 #include "veeprom.h"
 
 #define USE_DIN_MIDI 0
@@ -267,7 +268,7 @@ static void ipc_apply(uint32_t pkt) {
             ep.setParameter(ipc_d1(pkt), ipc_u16_to_f(ipc_d2(pkt)));
             break;
         case IPC_CMD_PROGRAM:
-            ep.setProgram(ipc_d1(pkt));
+            preset_apply(ipc_d1(pkt), &ep, &cp_fx);
             break;
         case IPC_CMD_INSTRUMENT:
             ep.setInstrument(ipc_d1(pkt));

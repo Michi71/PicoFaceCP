@@ -2,6 +2,10 @@
 
 #include "mdaEPiano.h"
 #include "ipc.h"
+#include "presets.h"
+#include "midi_reface.h"
+
+extern RefaceMidi refaceMidi;
 
 /*
   Draw a string at x,y
@@ -87,11 +91,10 @@ extern "C"
 
 uint8_t pico_UserInterfaceProgramSelect(u8g2_t *u8g2, Encoder *enc, PushButton *bt, mdaEPiano *ep)
 {
+  (void)ep;
   u8g2_uint_t  xx;
 
-  uint8_t local_value = ep->getProgram();
-  //uint8_t r; /* not used ??? */
-  uint8_t event;
+  uint8_t local_value = preset_get_current();
   int32_t delta;
   char buf[24];
 
@@ -100,8 +103,7 @@ uint8_t pico_UserInterfaceProgramSelect(u8g2_t *u8g2, Encoder *enc, PushButton *
 
   /* force baseline position */
   u8g2_SetFontPosBaseline(u8g2);
-  
- // ipc_send_program(local_value);
+
   /* event loop */
   for(;;)
   {
@@ -109,52 +111,54 @@ uint8_t pico_UserInterfaceProgramSelect(u8g2_t *u8g2, Encoder *enc, PushButton *
     do
     {
       /* render */
-	  u8g2_SetFont(u8g2, u8g2_font_8x13B_tf);		
-	  strcpy(buf, "PROGRAM");
-	  u8g2_SelDrawUTF8Line(u8g2, 0, 10, u8g2_GetDisplayWidth(u8g2)-2, buf, 0, 0);
-	  ep->getProgramName(buf);
-	  u8g2_SelDrawUTF8Line(u8g2, 0, 60, u8g2_GetDisplayWidth(u8g2)-2, buf, 0, 0);
-	  
-	  u8g2_DrawHLine(u8g2, 0, 12, u8g2_GetDisplayWidth(u8g2));
-	  
-	  /* Program Name */
-	  xx = 0;
-	  u8g2_SetFont(u8g2, u8g2_font_fub25_tf);	
-	  xx += u8g2_DrawUTF8(u8g2, xx, 44, "P");	  
-	  u8g2_DrawUTF8(u8g2, xx, 44, u8x8_u8toa(local_value, 3));
+      u8g2_SetFont(u8g2, u8g2_font_8x13B_tf);
+      strcpy(buf, "PRESET");
+      u8g2_SelDrawUTF8Line(u8g2, 0, 10, u8g2_GetDisplayWidth(u8g2)-2, buf, 0, 0);
+      strncpy(buf, cpPresets[local_value].name, sizeof(buf) - 1);
+      buf[sizeof(buf) - 1] = 0;
+      u8g2_SelDrawUTF8Line(u8g2, 0, 60, u8g2_GetDisplayWidth(u8g2)-2, buf, 0, 0);
+
+      u8g2_DrawHLine(u8g2, 0, 12, u8g2_GetDisplayWidth(u8g2));
+
+      /* Preset number */
+      xx = 0;
+      u8g2_SetFont(u8g2, u8g2_font_fub25_tf);
+      xx += u8g2_DrawUTF8(u8g2, xx, 44, "P");
+      u8g2_DrawUTF8(u8g2, xx, 44, u8x8_u8toa(local_value, 3));
 
     } while( u8g2_NextPage(u8g2) );
-        
+
     for(;;)
     {
-	  ui_poll_usb(); delta = enc->delta();
+      ui_poll_usb(); delta = enc->delta();
       if (bt->ReadButton() == PushButton::PRESSED)
       {
-		ui_wait_button_release(bt); return local_value;
+        ui_wait_button_release(bt); return local_value;
       }
       else if (delta > 0)
       {
-        if ( local_value >= ep->getProgramCount() - 1 )
+        if ( local_value >= CP_NPRESETS - 1 )
           local_value = 0;
         else
           local_value++;
+        preset_set_current(local_value);
         ipc_send_program(local_value);
+        refaceMidi.txProgram(local_value);
         break;
       }
       else if (delta < 0)
       {
         if ( local_value <= 0 )
-          local_value = ep->getProgramCount() - 1;
+          local_value = CP_NPRESETS - 1;
         else
           local_value--;
+        preset_set_current(local_value);
         ipc_send_program(local_value);
+        refaceMidi.txProgram(local_value);
         break;
       }
     }
   }
-  
-  /* never reached */
-  //return r;  
 }
 
 uint8_t pico_UserInterfaceInstrumentSelect(u8g2_t *u8g2, Encoder *enc, PushButton *bt, mdaEPiano *ep) {

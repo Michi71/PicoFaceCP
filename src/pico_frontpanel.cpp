@@ -27,7 +27,8 @@ static int pct(float v){int x=(int)(v*100.0f+0.5f); if(x<0)x=0; if(x>99)x=99; re
 extern RefaceMidi refaceMidi;
 static void fp_send_fx_param(uint8_t id, float v){ ipc_send_fx_param(id, v); refaceMidi.txFxParam(id, v); }
 static void fp_send_fx_mode(uint8_t id, uint8_t m){ ipc_send_fx_mode(id, m); refaceMidi.txFxMode(id, (int)m); }
-static void fp_send_instrument(int i){ ipc_send_instrument((uint8_t)i); refaceMidi.txInstrument(i); }
+// CC80 now selects presets, not instruments; Type change stays local + IPC.
+static void fp_send_instrument(int i){ ipc_send_instrument((uint8_t)i); }
 
 /* ------------------------------------------------------------------ */
 /* Menu helpers (use selector encoder / button)                       */
@@ -86,6 +87,11 @@ static void openMainMenu(u8g2_t* u, Encoder* enc, PushButton* bt, mdaEPiano* ep,
 /* ------------------------------------------------------------------ */
 enum { SCR_VOLOCT=0, SCR_VOICE, SCR_TREM, SCR_CHO, SCR_DLY, SCR_REV, SCR_VPARAM, SCR_SYSTEM, SCR_COUNT };
 
+/* V.PARAMS whitelist: hides 4 (Modulation), 5 (LFO Rate), 11 (Overdrive)
+   -- these are FX-chain duplicates and neutralised in the engine. */
+static const uint8_t kVpMap[] = {0,1,2,3,6,7,8,9,10};
+static const int kVpCount = 9;
+
 #define LONG_PRESS_MS 500
 
 /* ------------------------------------------------------------------ */
@@ -113,8 +119,7 @@ void pico_UserInterfaceFrontPanel(u8g2_t* u8g2, Encoder* encSel, PushButton* btS
     int   oct   = ui_get_octave();
     int   nInstr= ep->getInstrumentCount();
     int     vpIdx = 0;
-    int     nP    = ep->getParameterCount();
-    float   vpVal= (nP > 0) ? ep->getParameter(0) : 0.0f;
+    float   vpVal= ep->getParameter(kVpMap[0]);
     uint8_t midiCh  = refaceMidi.getRxChannel();
     float   preGain = fx->getPreGain();
 
@@ -212,7 +217,7 @@ void pico_UserInterfaceFrontPanel(u8g2_t* u8g2, Encoder* encSel, PushButton* btS
                     break;
                 case SCR_VPARAM: {
                     char nm[32];
-                    ep->getParameterName(vpIdx, nm);
+                    ep->getParameterName(kVpMap[vpIdx], nm);
                     snprintf(lineA, sizeof(lineA), "%s", nm);
                     snprintf(lineB, sizeof(lineB), "Val  %2d", pct(vpVal));
                     break;
@@ -295,7 +300,7 @@ void pico_UserInterfaceFrontPanel(u8g2_t* u8g2, Encoder* encSel, PushButton* btS
                     if (v != rev) { rev = v; extChanged = true; }
                 } break;
                 case SCR_VPARAM: {
-                    auto v = ep->getParameter(vpIdx);
+                    auto v = ep->getParameter(kVpMap[vpIdx]);
                     if (v != vpVal) { vpVal = v; extChanged = true; }
                 } break;
                 case SCR_SYSTEM: {
@@ -342,7 +347,7 @@ void pico_UserInterfaceFrontPanel(u8g2_t* u8g2, Encoder* encSel, PushButton* btS
             if (ds != 0) {
                 screen = (screen + (ds > 0 ? 1 : -1) + SCR_COUNT) % SCR_COUNT;
                 if (screen == SCR_VPARAM) {
-                    vpVal = ep->getParameter(vpIdx);
+                    vpVal = ep->getParameter(kVpMap[vpIdx]);
                 }
                 break;
             }
@@ -403,7 +408,7 @@ void pico_UserInterfaceFrontPanel(u8g2_t* u8g2, Encoder* encSel, PushButton* btS
                         /* no B */
                         break;
                     case SCR_VPARAM:
-                        vpVal = 0.5f; ipc_send_voice_param((uint8_t)vpIdx, vpVal);
+                        vpVal = 0.5f; ipc_send_voice_param(kVpMap[vpIdx], vpVal);
                         break;
                     case SCR_SYSTEM:
                         preGain = 1.0f;
@@ -442,11 +447,8 @@ void pico_UserInterfaceFrontPanel(u8g2_t* u8g2, Encoder* encSel, PushButton* btS
                         fp_send_fx_param(FX_REVERB, rev);
                         break;
                     case SCR_VPARAM: {
-                        int n = ep->getParameterCount();
-                        if (n > 0) {
-                            vpIdx = (vpIdx + (dA > 0 ? 1 : -1) + n) % n;
-                            vpVal = ep->getParameter(vpIdx);
-                        }
+                        vpIdx = (vpIdx + (dA > 0 ? 1 : -1) + kVpCount) % kVpCount;
+                        vpVal = ep->getParameter(kVpMap[vpIdx]);
                         break;
                     }
                     case SCR_SYSTEM: {
@@ -492,7 +494,7 @@ void pico_UserInterfaceFrontPanel(u8g2_t* u8g2, Encoder* encSel, PushButton* btS
                         break;
                     case SCR_VPARAM:
                         vpVal = clamp01f(vpVal + dB * 0.02f);
-                        ipc_send_voice_param((uint8_t)vpIdx, vpVal);
+                        ipc_send_voice_param(kVpMap[vpIdx], vpVal);
                         break;
                     case SCR_SYSTEM:
                         preGain = clamp01f(preGain + dB * 0.02f);

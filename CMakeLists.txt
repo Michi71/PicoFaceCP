@@ -71,6 +71,7 @@ add_executable(${PROJECT_NAME}
     src/pico_frontpanel.cpp
     src/settings.cpp
     src/veeprom.cpp
+    src/presets.cpp
 )
 
 pico_define_boot_stage2(slower_boot2 ${PICO_DEFAULT_BOOT_STAGE2_FILE})

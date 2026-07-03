@@ -7,6 +7,7 @@
 #include "ipc.h"
 #include "mdaEPiano.h"
 #include "reface_cp_chain.h"
+#include "presets.h"
 #include "pico/stdlib.h"
 #include "tusb.h"
 #include <string.h>
@@ -185,12 +186,11 @@ void RefaceMidi::txFxMode(uint8_t fxMode, int mode) {
     txCC(cc, val);
 }
 
-void RefaceMidi::txInstrument(int instr) {
+void RefaceMidi::txProgram(int preset) {
     if (!midiControlEnabled()) return;
-    static const uint8_t t[6] = {0, 25, 51, 76, 102, 127};
-    if (instr < 0) instr = 0;
-    if (instr > 5) instr = 5;
-    txCC(80, t[instr]);
+    if (preset < 0) preset = 0;
+    if (preset > CP_NPRESETS - 1) preset = CP_NPRESETS - 1;
+    txCC(80, preset_to_cc((uint8_t)preset));
 }
 
 // ===========================================================================
@@ -214,14 +214,9 @@ void RefaceMidi::onControlChange(uint8_t cc, uint8_t val, uint8_t ch) {
     case 19: if (midiControlEnabled()) ipc_send_fx_param(FX_TW_RATE, v01); break;
     case 80: {
         if (midiControlEnabled()) {
-            uint8_t i;
-            if      (val <= 21)  i = 0;
-            else if (val <= 42)  i = 1;
-            else if (val <= 64)  i = 2;
-            else if (val <= 85)  i = 3;
-            else if (val <= 106) i = 4;
-            else                 i = 5;
-            ipc_send_instrument(i);
+            uint8_t p = preset_from_cc(val);
+            preset_set_current(p);
+            ipc_send_program(p);
         }
         break;
     }
