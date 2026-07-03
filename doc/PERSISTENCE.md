@@ -42,6 +42,11 @@
 - **Performance Impact:**
   - Audio pause: ~0.5 ms/program.
   - Sector erase: ~50 ms (every 16th save).
+- **444 MHz overclock caveat:** the SDK's `flash_range_erase/program` end with a
+  boot2 re-init that resets QMI `M0_TIMING` to a value unstable at 444 MHz. The
+  whole erase+program sequence therefore runs in one RAM-resident function
+  (`flash_write_locked`) that restores `PICOFACE_QMI_M0_TIMING_OC`
+  (project_config.h, same value pico_init sets) before any flash fetch happens.
 - **Files:** `include/veeprom.h`, `src/veeprom.cpp`, `include/settings.h`, `src/settings.cpp`, `main.cpp` hooks.
 
 ## Testing

@@ -36,4 +36,9 @@
 #define PIN_PB_DT     13
 #define PIN_PB_SW     15   // optional switch
 
+// QMI M0_TIMING value for the 444 MHz overclock (set in pico_init, and
+// re-applied after every flash_range_erase/program because the SDK's boot2
+// re-init clobbers it with a timing that is unstable at 444 MHz).
+#define PICOFACE_QMI_M0_TIMING_OC 0x60007303u
+
 #endif // __PROJECT_CONFIG_H__

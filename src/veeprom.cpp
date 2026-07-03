@@ -56,6 +56,8 @@ void veeprom_sim_reset(void) {
 #include "hardware/flash.h"
 #include "hardware/sync.h"
 #include "pico/platform.h"
+#include "hardware/structs/qmi.h"
+#include "project_config.h"
 
 #ifndef FLASH_SECTOR_SIZE
 #define FLASH_SECTOR_SIZE 4096u
@@ -67,12 +69,22 @@ static const uint8_t* read_ptr(uint32_t off) {
     return (const uint8_t*)(XIP_BASE + VEEPROM_FLASH_OFFSET + off);
 }
 
-static void erase_sector(int s) {
-    flash_range_erase(VEEPROM_FLASH_OFFSET + (uint32_t)s * FLASH_SECTOR_SIZE, FLASH_SECTOR_SIZE);
-}
-
-static void program_record(uint32_t off, const uint8_t* buf) {
-    flash_range_program(VEEPROM_FLASH_OFFSET + off, buf, VEEPROM_RECORD_SIZE);
+// Erase (optional) + program + QMI-timing restore in one RAM-resident block:
+// after flash_range_erase/program the SDK's boot2 re-init leaves M0_TIMING at a
+// value that is unstable at the 444 MHz overclock, so no code may be fetched
+// from flash until the timing is restored. __no_inline_not_in_flash_func
+// guarantees this function (and its literals) executes from SRAM only.
+static void __no_inline_not_in_flash_func(flash_write_locked)(int eraseSectorIdx, uint32_t progOff, const uint8_t* buf) {
+    uint32_t ints = save_and_disable_interrupts();
+    if (eraseSectorIdx >= 0) {
+        flash_range_erase(VEEPROM_FLASH_OFFSET + (uint32_t)eraseSectorIdx * FLASH_SECTOR_SIZE, FLASH_SECTOR_SIZE);
+    }
+    flash_range_program(VEEPROM_FLASH_OFFSET + progOff, buf, VEEPROM_RECORD_SIZE);
+#if PICO_RP2350
+    qmi_hw->m[0].timing = PICOFACE_QMI_M0_TIMING_OC;  // undo boot2 re-init clobber
+    __compiler_memory_barrier();
+#endif
+    restore_interrupts(ints);
 }
 
 #endif
@@ -178,10 +190,7 @@ bool veeprom_save(const void* payload, uint16_t len, uint16_t version) {
     if (s_lock) {
         if (!s_lock()) return false;
     }
-    uint32_t ints = save_and_disable_interrupts();
-    if (needErase >= 0) erase_sector(needErase);
-    program_record((uint32_t)candidate * VEEPROM_RECORD_SIZE, buf);
-    restore_interrupts(ints);
+    flash_write_locked(needErase, (uint32_t)candidate * VEEPROM_RECORD_SIZE, buf);
     if (s_unlock) s_unlock();
 #endif
 
