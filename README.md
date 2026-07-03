@@ -42,6 +42,9 @@ hardware.
 - **Header‑only, RP2350‑optimized DSP** — single‑precision float throughout
   (engine and effects), no heap, the per‑sample hot path placed in RAM to
   avoid XIP‑cache jitter inside the audio IRQ.
+- **Virtual EEPROM settings persistence** — knobs, instrument, octave, MIDI
+  system settings survive power cycles, autosave 2 s after last change; see
+  [`doc/PERSISTENCE.md`](doc/PERSISTENCE.md).
 - **macOS host demo** (CoreAudio + PortMidi) running the exact same effect code.
 
 Current firmware footprint: **FLASH ≈ 26.3 %** (≈ 4.4 MB / 16 MB), **RAM ≈ 36.4 %**
@@ -239,6 +242,9 @@ two values shown on the current screen. Each value screen looks like:
   unit; `double` is avoided) — this includes `mdaEPiano`'s note‑on/off envelope
   and pitch math (`exp`/`pow`/`sqrt` → `expf`/`powf`/`sqrtf`), which runs inside
   the audio DMA IRQ via the Core‑0 IPC queue.
+- **Virtual EEPROM** in last 8 KB flash, wear‑leveled 256‑B CRC record log;
+  Core 0 parks in RAM spin via `IPC_CMD_FLASH_LOCK` during writes
+  (`flash_safe_execute` would collide with SIO‑FIFO IPC).
 
 ---
 

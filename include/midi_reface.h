@@ -79,6 +79,9 @@ public:
   uint8_t getRxChannel() const { return _sys[SYS_RX_CH]; }   // 0..15 = ch 1-16, RX_CH_ALL = omni
   void setRxChannel(uint8_t ch);   // clamps to 0..RX_CH_ALL
 
+  void getSystemBlock(uint8_t* dst) const;   // copy SYS_BLOCK_SIZE (32) bytes of the SYSTEM common image (for persistence)
+  void loadSystemBlock(const uint8_t* src);  // restore SYSTEM common image (32 bytes), sanitize, re-apply master tune
+
   bool midiControlEnabled() const { return _sys[SYS_MIDI_CONTROL] != 0; }
 
 private:

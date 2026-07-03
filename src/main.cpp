@@ -27,6 +27,8 @@
 #include "arduino_compat.h"
 #include "mdaEPiano.h"
 #include "cp_audio.h"
+#include "settings.h"
+#include "veeprom.h"
 
 #define USE_DIN_MIDI 0
 #define DEBUG_MIDI 0
@@ -130,6 +132,27 @@ void activity_callback(void) {
 }
 
 // ===========================================================================
+// Flash-park handshake (settings persistence, see veeprom.h)
+// ===========================================================================
+static volatile uint32_t g_flash_park_ack = 0;
+static volatile uint32_t g_flash_release = 0;
+// Core 0: called from ipc_apply inside the audio DMA IRQ. RAM-resident because XIP is
+// unavailable while Core 1 erases/programs flash. 2 s timeout = worst-case erase+program guard.
+static void __not_in_flash_func(flash_park_core0)(void) {
+    uint32_t ints = save_and_disable_interrupts();
+    g_flash_park_ack = 1;
+    uint32_t start = time_us_32();
+    while (!g_flash_release && (time_us_32() - start) < 2000000u) { tight_loop_contents(); }
+    g_flash_park_ack = 0;
+    restore_interrupts(ints);
+}
+// Core 1: veeprom lock hook — request the park, wait max 100 ms for the ack (audio IRQ
+// drains the FIFO every ~0.36 ms). false = abort the save, flash untouched.
+static bool flash_lock_core1(void) { g_flash_release = 0; ipc_send_flash_lock(); uint32_t start = time_us_32(); while (!g_flash_park_ack) { if ((time_us_32() - start) > 100000u) return false; tight_loop_contents(); } return true; }
+// Core 1: veeprom unlock hook — release Core 0, wait briefly until it left the spin loop.
+static void flash_unlock_core1(void) { g_flash_release = 1; uint32_t start = time_us_32(); while (g_flash_park_ack && (time_us_32() - start) < 10000u) { tight_loop_contents(); } }
+
+// ===========================================================================
 // ipc_apply (runs on Core 0) -- apply one FIFO packet to the engine / FX
 // ===========================================================================
 static void ipc_apply(uint32_t pkt) {
@@ -180,6 +203,7 @@ static void ipc_apply(uint32_t pkt) {
         case IPC_CMD_PITCH_BEND:
             ep.setPitchBend((int32_t)ipc_d2(pkt));
             break;
+        case IPC_CMD_FLASH_LOCK: flash_park_core0(); break;
     }
 }
 
@@ -263,6 +287,7 @@ void ui_poll_usb(void) {
     tud_task();
     usbmidi.process();
     refaceMidi.tick();
+    settings_task(&ep, &cp_fx, &refaceMidi);   // debounced autosave to virtual EEPROM
 #if PLAY_RANDOM_NOTES
     play_random_notes_step();
 #endif
@@ -317,6 +342,7 @@ void core1_main(void) {
   usbmidi.setSysExCallback(sysex_callback);
   usbmidi.setActivityCallback(activity_callback);
   refaceMidi.init(&ep, &cp_fx);
+  settings_boot_restore_core1(&refaceMidi);  // restore octave + MIDI SYSTEM block
   while (1) {
       ui_poll_usb();
       gui_step();
@@ -339,6 +365,9 @@ int main(void) {
   cp_fx.setReverbDepth(0.0f);
   cp_fx.setTremWahMode(RefaceCpChain::TW_OFF);
   cp_fx.setDelayMode(RefaceCpChain::DLY_OFF);
+  // Defaults above act as the fallback when no valid settings record exists.
+  veeprom_set_lock_hooks(flash_lock_core1, flash_unlock_core1);
+  settings_boot_restore_core0(&ep, &cp_fx);   // single-core phase: plain XIP reads, direct setters
   // Core 1 (USB/MIDI/UI) must launch BEFORE init_audio(): the SDK uses the SIO
   // FIFO for the core-launch handshake, and the audio DMA IRQ drains that same
   // FIFO (i2s_callback_func) -> it must not run during the launch handshake.

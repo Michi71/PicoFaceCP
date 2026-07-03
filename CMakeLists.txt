@@ -69,6 +69,8 @@ add_executable(${PROJECT_NAME}
     src/pico_input_value.cpp
     src/pico_program_select.cpp
     src/pico_frontpanel.cpp
+    src/settings.cpp
+    src/veeprom.cpp
 )
 
 pico_define_boot_stage2(slower_boot2 ${PICO_DEFAULT_BOOT_STAGE2_FILE})
@@ -106,6 +108,7 @@ target_link_libraries(${PROJECT_NAME}
         hardware_clocks
         hardware_sync_spin_lock
         hardware_sync
+        hardware_flash
         pico_unique_id
         pico_bootsel_via_double_reset
         pico_util_buffer

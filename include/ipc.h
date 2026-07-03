@@ -13,7 +13,8 @@ enum IpcCommand : uint8_t {
     IPC_CMD_VOICE_PARAM  = 0x06,
     IPC_CMD_PROGRAM      = 0x07,
     IPC_CMD_INSTRUMENT   = 0x08,
-    IPC_CMD_PITCH_BEND   = 0x09
+    IPC_CMD_PITCH_BEND   = 0x09,
+    IPC_CMD_FLASH_LOCK   = 0x0A   // Core 1 asks Core 0 to park in RAM during flash write
 };
 
 enum FxParam : uint8_t {
@@ -96,6 +97,10 @@ static inline void ipc_send_instrument(uint8_t instrument) {
 
 static inline void ipc_send_pitch_bend(uint16_t bend14) {
     multicore_fifo_push_blocking(ipc_pack(IPC_CMD_PITCH_BEND, 0, bend14));
+}
+
+static inline void ipc_send_flash_lock(void) {
+    multicore_fifo_push_blocking(ipc_pack(IPC_CMD_FLASH_LOCK, 0, 0));
 }
 
 #endif // __IPC_H__

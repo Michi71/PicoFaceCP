@@ -550,3 +550,22 @@ void RefaceMidi::txBulkBlock(uint8_t ah, uint8_t am, uint8_t al, const uint8_t* 
     buf[n++] = 0xF7;
     txBytes(buf, n);
 }
+
+// Copy the 32-byte SYSTEM common image for persistence.
+void RefaceMidi::getSystemBlock(uint8_t* dst) const {
+  memcpy(dst, _sys, SYS_BLOCK_SIZE);
+}
+
+// Restore the 32-byte SYSTEM common image, sanitize fields, re-apply master tune.
+void RefaceMidi::loadSystemBlock(const uint8_t* src) {
+  memcpy(_sys, src, SYS_BLOCK_SIZE);
+  if (_sys[SYS_RX_CH] > RX_CH_ALL) _sys[SYS_RX_CH] = RX_CH_ALL;
+  _sys[SYS_TUNE_HH] &= 0x0F;
+  _sys[SYS_TUNE_HL] &= 0x0F;
+  _sys[SYS_TUNE_LH] &= 0x0F;
+  _sys[SYS_TUNE_LL] &= 0x0F;
+  if (_sys[SYS_TRANSPOSE] < 0x34 || _sys[SYS_TRANSPOSE] > 0x4C) _sys[SYS_TRANSPOSE] = 0x40;
+  _sys[SYS_LOCAL]        = _sys[SYS_LOCAL]        ? 1 : 0;
+  _sys[SYS_MIDI_CONTROL] = _sys[SYS_MIDI_CONTROL] ? 1 : 0;
+  applyMasterTune();
+}
