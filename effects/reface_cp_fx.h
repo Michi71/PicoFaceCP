@@ -15,6 +15,7 @@
 #include <cmath>
 #include <cstdint>
 #include "dsp_fastmath.h"   // fastTanh, fastTan
+#include "dsp_lut.h"      // g_sinLUT() shared sine LUT
 #include "cp_hot.h"         // CP_HOT() RAM placement (Pico) / no-op (host)
 
 static inline float cp_clamp01(float x){ return x < 0.0f ? 0.0f : (x > 1.0f ? 1.0f : x); }
@@ -45,7 +46,7 @@ struct CpTremolo {
         if (phase >= 1.0f) phase -= 1.0f;
         if (phase < 0.0f)  phase += 1.0f;
 
-        float lfo = sinf(kTwoPi * phase);
+        float lfo = g_sinLUT().sin01_nofloor(phase);
         float a = 0.5f + 0.5f * lfo;
         float b = 0.5f - 0.5f * lfo;
 
@@ -112,8 +113,8 @@ struct CpChorus {
         float modSamp  = depthMs * 0.001f * sr; // 0..4 ms
         if (baseSamp + modSamp > (float)(kBuf - 2)) modSamp = (float)(kBuf - 2) - baseSamp;
 
-        float dl = baseSamp + modSamp * sinf(kTwoPi * phaseL);
-        float dr = baseSamp + modSamp * sinf(kTwoPi * phaseR);
+        float dl = baseSamp + modSamp * g_sinLUT().sin01_nofloor(phaseL);
+        float dr = baseSamp + modSamp * g_sinLUT().sin01_nofloor(phaseR);
 
         float dryL = l, dryR = r;
         bufL[widx] = dryL;
@@ -183,8 +184,8 @@ struct CpPhaser {
         // (exp2f/tan too costly per sample; LFO max 5 Hz, so this is inaudible)
         if ((cnt++ & 7) == 0) {
             float oct = 0.6f + 1.6f * depthNorm;   // sweep width +-0.6..+-2.2 oct
-            float fcL = 750.0f * exp2f(oct * sinf(phase));
-            float fcR = 750.0f * exp2f(oct * sinf(phaseR));
+            float fcL = 750.0f * exp2f(oct * g_sinLUT().sin01_nofloor(phase / kTwoPi));
+            float fcR = 750.0f * exp2f(oct * g_sinLUT().sin01_nofloor(phaseR / kTwoPi));
             // first-order all-pass corner: a = (1 - tan(pi*fc/sr)) / (1 + tan(pi*fc/sr))
             float tL = fastTan(3.14159265f * fcL / sr);
             float tR = fastTan(3.14159265f * fcR / sr);
@@ -221,7 +222,7 @@ struct CpPhaser {
 //            repeat was identical to digital mode and barely distinguishable.)
 // ============================================================================
 struct CpDelay {
-    static constexpr int kBuf = 24001;   // 500 ms @ 48 kHz
+    static constexpr int kBuf = 22080;   // ~500 ms @ 44.1 kHz (was 24001 for 48 kHz)
     static constexpr float kTwoPi = 6.28318530718f;
 
     float sr;
@@ -265,7 +266,7 @@ struct CpDelay {
         if (modPhase >= 1.f) modPhase -= 1.f;
         float delayEff = delaySamp;
         if (mode == 1) {
-            delayEff *= 1.0f + 0.0008f * sinf(kTwoPi * modPhase);
+            delayEff *= 1.0f + 0.0008f * g_sinLUT().sin01_nofloor(modPhase);
             if (delayEff > (float)(kBuf - 2)) delayEff = (float)(kBuf - 2);
         }
 

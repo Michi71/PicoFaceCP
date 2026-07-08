@@ -47,8 +47,8 @@ hardware.
   [`doc/PERSISTENCE.md`](doc/PERSISTENCE.md).
 - **macOS host demo** (CoreAudio + PortMidi) running the exact same effect code.
 
-Current firmware footprint: **FLASH ≈ 26.3 %** (≈ 4.4 MB / 16 MB), **RAM ≈ 36.4 %**
-(≈ 191 KB / 512 KB).
+Current firmware footprint: **FLASH ≈ 26.4 %** (≈ 4.4 MB / 16 MB), **RAM ≈ 33.8 %**
+(≈ 169 KB / 512 KB).
 
 ---
 

@@ -2,7 +2,7 @@
 #define __AUDIO_SUBSYSTEM_H__
 
 
-#define SAMPLES_PER_BUFFER 16 // Samples / channel
+#define SAMPLES_PER_BUFFER 32 // Samples / channel (16->32: halved IRQ rate to ~1378/s)
 
 #define USE_AUDIO_I2S 1
 #include "audio_i2s.h"

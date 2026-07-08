@@ -110,7 +110,7 @@ private:
         store = delayed * (1.0f - kDampCoeff) + store * kDampCoeff;
         float out = delayed;
         buf[idx] = store * kCombFeedback + input;
-        idx = (idx + 1) % len;
+        if (++idx >= len) idx = 0;
         return out;
     }
 
@@ -118,7 +118,7 @@ private:
         float delayed = buf[idx];
         float out = delayed - input * kAllpassFeedback;
         buf[idx] = input + delayed * kAllpassFeedback;
-        idx = (idx + 1) % len;
+        if (++idx >= len) idx = 0;
         return out;
     }
 };

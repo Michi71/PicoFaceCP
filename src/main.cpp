@@ -434,10 +434,10 @@ void core1_main(void) {
 // ===========================================================================
 int main(void) {
   pico_init();
-  ep.setVolume(64);
+  ep.setVolume(100);
   cp_fx.init((float)SAMPLING_RATE);
   cp_fx.setVoiceType(ep.getCurrentInstrument());
-  cp_fx.setVolume(0.9f);
+  cp_fx.setVolume(1.0f);
   cp_fx.setDrive(0.0f);
   cp_fx.setChoPhaMode(RefaceCpChain::CP_OFF);
   cp_fx.setChoPhaDepth(0.4f);
@@ -464,10 +464,10 @@ void __not_in_flash_func(i2s_callback_func)() {
   while (multicore_fifo_rvalid()) { ipc_apply(multicore_fifo_pop_blocking()); }
   audio_buffer_t *buffer = take_audio_buffer(ap, false);
   if (buffer == NULL) { return; }
-  int16_t l[buffer->max_sample_count];
-  int16_t r[buffer->max_sample_count];
+  int16_t l[SAMPLES_PER_BUFFER];
+  int16_t r[SAMPLES_PER_BUFFER];
   int32_t *samples = (int32_t *)buffer->buffer->bytes;
-  ep.process(&l[0], &r[0]);
+  ep.process(&r[0], &l[0]);
   cp_process_block_i16(cp_fx, &l[0], &r[0], buffer->max_sample_count);
   for (uint i = 0; i < buffer->max_sample_count; i++) {
       samples[i * 2 + 0] = l[i] << 16;

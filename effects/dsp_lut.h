@@ -1,4 +1,7 @@
 #pragma once
+// dsp_lut.h — Shared sine lookup table (512 entries).
+// Initialised lazily by g_sinLUT(). Used by all LFOs in the effect chain
+// to replace per-sample sinf() calls (~50-100 cycles → ~5-10 cycles on M33).
 
 #include <cmath>
 #include <cstdint>
@@ -42,3 +45,11 @@ public:
     return a + (b - a) * frac;
   }
 };
+
+// Global shared sine LUT (512 entries). First call lazily initialises it.
+inline SinLUT<512>& g_sinLUT() {
+  static SinLUT<512> lut;
+  static bool inited = false;
+  if (!inited) { lut.init(); inited = true; }
+  return lut;
+}

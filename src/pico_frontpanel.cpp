@@ -21,7 +21,7 @@
 /* Static helpers                                                     */
 /* ------------------------------------------------------------------ */
 static inline float clamp01f(float v){return v<0.0f?0.0f:(v>1.0f?1.0f:v);}
-static int pct(float v){int x=(int)(v*100.0f+0.5f); if(x<0)x=0; if(x>99)x=99; return x;}
+static int pct(float v){int x=(int)(v*100.0f+0.5f); if(x<0)x=0; if(x>100)x=100; return x;}
 
 // panel change -> IPC to Core 0 + MIDI OUT CC (reface CP MIDI control)
 extern RefaceMidi refaceMidi;
